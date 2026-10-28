@@ -1,0 +1,76 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template aiplacement_assistant/message
+
+    One message in the Moodle Assistant conversation.
+
+    Context variables required for this template:
+    * isuser - Whether the message was written by the user.
+    * text - Message text, already formatted and escaped by the server (rendered unescaped).
+    * iserror - Whether this is an error message.
+    * rows - Optional data rows, each with label, value and optional url (raw text, escaped here).
+    * links - Optional links, each with label and url.
+    * menu - Optional menu of intents, each with intent and label.
+
+    Example context (json):
+    {
+        "isuser": false,
+        "iserror": false,
+        "text": "You have 2 item(s) due in the next 7 days.",
+        "rows": [
+            {"label": "Essay", "value": "Friday", "url": "https://example.com/mod/assign/view.php?id=1"},
+            {"label": "Quiz 1", "value": "Monday"}
+        ],
+        "links": [{"label": "Moodle documentation", "url": "https://docs.moodle.org/"}],
+        "menu": [{"intent": "due_this_week", "label": "What is due soon"}]
+    }
+}}
+<div class="aiplacement_assistant-message mb-2 {{#isuser}}aiplacement_assistant-message-user{{/isuser}}{{^isuser}}aiplacement_assistant-message-assistant{{/isuser}}"
+     data-region="aiplacement_assistant-message" data-role="{{#isuser}}user{{/isuser}}{{^isuser}}assistant{{/isuser}}">
+    <div class="sr-only visually-hidden">
+        {{#isuser}}{{#str}} role_user, aiplacement_assistant {{/str}}{{/isuser}}
+        {{^isuser}}{{#str}} role_assistant, aiplacement_assistant {{/str}}{{/isuser}}
+    </div>
+    <div class="aiplacement_assistant-bubble p-2 rounded {{#iserror}}alert alert-danger mb-0{{/iserror}}">
+        <div class="aiplacement_assistant-text">{{{text}}}</div>
+        {{#rows.0}}
+        <ul class="aiplacement_assistant-rows list-unstyled mb-0 mt-2">
+            {{#rows}}
+            <li>
+                {{#url}}<a href="{{url}}">{{label}}</a>{{/url}}{{^url}}<span>{{label}}</span>{{/url}}{{#value}}: <span>{{value}}</span>{{/value}}
+            </li>
+            {{/rows}}
+        </ul>
+        {{/rows.0}}
+        {{#links.0}}
+        <ul class="aiplacement_assistant-links list-unstyled mb-0 mt-2">
+            {{#links}}
+            <li><a href="{{url}}" target="_blank" rel="noopener noreferrer">{{label}}</a></li>
+            {{/links}}
+        </ul>
+        {{/links.0}}
+        {{#menu.0}}
+        <div class="aiplacement_assistant-menu d-flex flex-column mt-2">
+            {{#menu}}
+            <button type="button" class="btn btn-outline-secondary btn-sm mb-1 text-start text-left"
+                    data-action="aiplacement_assistant-intent" data-intent="{{intent}}">{{label}}</button>
+            {{/menu}}
+        </div>
+        {{/menu.0}}
+    </div>
+</div>

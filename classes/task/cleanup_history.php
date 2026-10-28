@@ -40,10 +40,9 @@ class cleanup_history extends \core\task\scheduled_task {
      */
     public function execute(): void {
         $days = (int) get_config('aiplacement_assistant', 'retentiondays');
-        if ($days <= 0) {
-            return;
-        }
-        $deleted = conversation::purge_older_than(time() - $days * DAYSECS);
+        // Retention zero means session-only: nothing may remain stored.
+        $cutoff = $days > 0 ? time() - $days * DAYSECS : PHP_INT_MAX;
+        $deleted = conversation::purge_older_than($cutoff);
         mtrace("aiplacement_assistant: deleted $deleted old message(s).");
     }
 }

@@ -44,17 +44,20 @@ final class cleanup_history_test extends \advanced_testcase {
     }
 
     /**
-     * Retention zero skips purging.
+     * Retention zero removes all stored rows.
      */
-    public function test_skips_when_retention_zero(): void {
+    public function test_retention_zero_purges_everything(): void {
         global $DB;
         $this->resetAfterTest();
         set_config('retentiondays', 10, 'aiplacement_assistant');
         $conv = new conversation($this->getDataGenerator()->create_user()->id);
         $conv->add('user', 'old', 1);
-        $DB->set_field('aiplacement_assistant_msg', 'timecreated', time() - 99 * DAYSECS);
+        $conv->add('user', 'recent', 1);
+        $firstid = $DB->get_field('aiplacement_assistant_msg', 'id', [], IGNORE_MULTIPLE);
+        $DB->set_field('aiplacement_assistant_msg', 'timecreated', time() - 99 * DAYSECS, ['id' => $firstid]);
         set_config('retentiondays', 0, 'aiplacement_assistant');
+        $this->expectOutputRegex('/deleted 2/');
         (new task\cleanup_history())->execute();
-        $this->assertSame(1, $DB->count_records('aiplacement_assistant_msg'));
+        $this->assertSame(0, $DB->count_records('aiplacement_assistant_msg'));
     }
 }

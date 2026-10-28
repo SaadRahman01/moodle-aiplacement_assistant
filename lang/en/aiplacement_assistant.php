@@ -40,5 +40,5 @@ $string['privacy:metadata:aiprovider:pagehelp'] = 'Help text describing the page
 $string['ratelimit'] = 'Rate limit';
 $string['ratelimit_desc'] = 'Maximum number of assistant requests each user may make per hour.';
 $string['retentiondays'] = 'Conversation retention (days)';
-$string['retentiondays_desc'] = 'Number of days assistant conversations are kept before being deleted.';
+$string['retentiondays_desc'] = 'Number of days assistant conversations are kept before being deleted. 0 means keep them only for the current session; any stored history is deleted by the next cleanup run.';
 $string['task_cleanup_history'] = 'Delete old assistant conversation history';

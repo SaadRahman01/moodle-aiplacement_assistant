@@ -208,6 +208,67 @@ final class student_intents_test extends \advanced_testcase {
     }
 
     /**
+     * Build a course with a visible 50/100 item and a hidden 100/100 item.
+     *
+     * @return array [student, course]
+     */
+    private function hidden_item_setup(): array {
+        $gen = $this->getDataGenerator();
+        $student = $gen->create_user();
+        $course = $gen->create_course(['fullname' => 'Hidden item course']);
+        $gen->enrol_user($student->id, $course->id, 'student');
+        foreach ([['Shown', 0, 50], ['Secret', 1, 100]] as [$name, $hidden, $mark]) {
+            $item = new \grade_item($gen->create_grade_item([
+                'courseid' => $course->id,
+                'itemtype' => 'manual',
+                'itemname' => $name,
+                'grademax' => 100,
+                'hidden' => $hidden,
+            ]), false);
+            $item->update_final_grade($student->id, $mark);
+        }
+        grade_regrade_final_grades($course->id);
+        $this->setUser($student);
+        return [$student, $course];
+    }
+
+    /**
+     * A total that includes hidden items is hidden from students by default.
+     */
+    public function test_my_grade_total_with_hidden_items_hidden(): void {
+        $this->resetAfterTest();
+        [$student, $course] = $this->hidden_item_setup();
+        $answer = (new my_grade())->handle(['course' => 'Hidden item'], $this->request($student));
+        $this->assertSame(get_string('grade_hidden', 'aiplacement_assistant'), $answer->rows[0]['value']);
+        $this->assertStringContainsString('/grade/report/user/index.php?id=' . $course->id, $answer->rows[0]['url']);
+    }
+
+    /**
+     * With the show-real-total setting the number is shown.
+     */
+    public function test_my_grade_total_with_hidden_items_real_total_setting(): void {
+        $this->resetAfterTest();
+        [$student, $course] = $this->hidden_item_setup();
+        grade_set_setting($course->id, 'report_user_showtotalsifcontainhidden', GRADE_REPORT_SHOW_REAL_TOTAL_IF_CONTAINS_HIDDEN);
+        $answer = (new my_grade())->handle(['course' => 'Hidden item'], $this->request($student));
+        $this->assertNotSame(get_string('grade_hidden', 'aiplacement_assistant'), $answer->rows[0]['value']);
+        $this->assertStringContainsString('150', $answer->rows[0]['value']);
+    }
+
+    /**
+     * Users who can view hidden grades see the real total.
+     */
+    public function test_my_grade_total_with_hidden_items_viewhidden(): void {
+        $this->resetAfterTest();
+        [$student, $course] = $this->hidden_item_setup();
+        $roleid = $this->getDataGenerator()->create_role();
+        assign_capability('moodle/grade:viewhidden', CAP_ALLOW, $roleid, \context_course::instance($course->id));
+        $this->getDataGenerator()->role_assign($roleid, $student->id, \context_course::instance($course->id));
+        $answer = (new my_grade())->handle(['course' => 'Hidden item'], $this->request($student));
+        $this->assertStringContainsString('150', $answer->rows[0]['value']);
+    }
+
+    /**
      * Create a student with an 80/100 grade in a course.
      *
      * @return array [user, course]

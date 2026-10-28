@@ -149,12 +149,24 @@ class access_check extends intent_base {
         if ($enrolments) {
             $enabled = array_filter($enrolments, fn($ue) => $ue->enrolstatus == ENROL_INSTANCE_ENABLED);
             $checks['enrol_instance_enabled'] = [(bool) $enabled, ''];
-            $active = array_filter($enrolments, fn($ue) => $ue->status == ENROL_USER_ACTIVE
+            // An enrolment is usable only when the same row passes every condition (as is_enrolled() onlyactive).
+            $usable = array_filter($enrolments, fn($ue) => $ue->enrolstatus == ENROL_INSTANCE_ENABLED
+                && $ue->status == ENROL_USER_ACTIVE
                 && $ue->timestart <= $now && ($ue->timeend == 0 || $ue->timeend > $now));
             $detail = '';
-            if (!$active) {
-                $ue = reset($enrolments);
-                if ($ue->status != ENROL_USER_ACTIVE) {
+            if (!$usable) {
+                // Describe the enabled-instance row closest to usable, if any.
+                $candidates = $enabled ?: $enrolments;
+                $ue = reset($candidates);
+                foreach ($candidates as $candidate) {
+                    if ($candidate->status == ENROL_USER_ACTIVE) {
+                        $ue = $candidate;
+                        break;
+                    }
+                }
+                if ($ue->enrolstatus != ENROL_INSTANCE_ENABLED) {
+                    $detail = get_string('check_detail_instancedisabled', 'aiplacement_assistant');
+                } else if ($ue->status != ENROL_USER_ACTIVE) {
                     $detail = get_string('check_detail_suspended', 'aiplacement_assistant');
                 } else if ($ue->timestart > $now) {
                     $detail = get_string('check_detail_notstarted', 'aiplacement_assistant');
@@ -162,7 +174,7 @@ class access_check extends intent_base {
                     $detail = get_string('check_detail_expired', 'aiplacement_assistant');
                 }
             }
-            $checks['enrolment_active'] = [(bool) $active, $detail];
+            $checks['enrolment_active'] = [(bool) $usable, $detail];
         }
 
         $viewhidden = has_capability('moodle/course:viewhiddencourses', $coursectx, $user->id);

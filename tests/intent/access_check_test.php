@@ -295,4 +295,90 @@ final class access_check_test extends \advanced_testcase {
         $this->assertFalse((new access_check())->is_available($this->request($student, $ctx)));
         $this->assertTrue((new access_check())->is_available($this->request(get_admin(), \context_system::instance())));
     }
+
+    /**
+     * Run the check for Ali in a course as admin.
+     *
+     * @param string $shortname Course short name.
+     * @return \aiplacement_assistant\answer
+     */
+    private function check_ali(string $shortname): \aiplacement_assistant\answer {
+        $this->setAdminUser();
+        return (new access_check())->handle(
+            ['user' => 'Ali Raza', 'course' => $shortname],
+            $this->request(get_admin(), \context_system::instance())
+        );
+    }
+
+    public function test_mixed_suspended_enabled_and_active_disabled_is_problem(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course(['shortname' => 'MIX1']);
+        $ali = $gen->create_user(['firstname' => 'Ali', 'lastname' => 'Raza']);
+        $gen->enrol_user($ali->id, $course->id, 'student', 'manual', 0, 0, ENROL_USER_SUSPENDED);
+        $self = enrol_get_plugin('self');
+        $instanceid = $self->add_instance($course, ['status' => ENROL_INSTANCE_DISABLED]);
+        $instance = $this->get_instance($instanceid);
+        $self->enrol_user($instance, $ali->id, 5, 0, 0, ENROL_USER_ACTIVE);
+        $answer = $this->check_ali('MIX1');
+        $this->assertTrue($this->is_problem($answer, 'enrolment_active'));
+        $this->assertFalse($this->is_problem($answer, 'enrol_instance_enabled'));
+        $this->assertGreaterThanOrEqual(1, $answer->facts['problems']);
+        $this->assertStringContainsString(
+            get_string('check_detail_suspended', 'aiplacement_assistant'),
+            $this->check_row($answer, 'enrolment_active')['value']
+        );
+    }
+
+    /**
+     * Fetch an enrol instance record.
+     *
+     * @param int $id Instance id.
+     * @return \stdClass
+     */
+    private function get_instance(int $id): \stdClass {
+        global $DB;
+        return $DB->get_record('enrol', ['id' => $id], '*', MUST_EXIST);
+    }
+
+    public function test_expired_enrolment(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course(['shortname' => 'EXP1']);
+        $ali = $gen->create_user(['firstname' => 'Ali', 'lastname' => 'Raza']);
+        $gen->enrol_user($ali->id, $course->id, 'student', 'manual', time() - 2 * DAYSECS, time() - DAYSECS);
+        $answer = $this->check_ali('EXP1');
+        $this->assertTrue($this->is_problem($answer, 'enrolment_active'));
+        $this->assertStringContainsString(
+            get_string('check_detail_expired', 'aiplacement_assistant'),
+            $this->check_row($answer, 'enrolment_active')['value']
+        );
+    }
+
+    public function test_not_yet_started_enrolment(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course(['shortname' => 'NYS1']);
+        $ali = $gen->create_user(['firstname' => 'Ali', 'lastname' => 'Raza']);
+        $gen->enrol_user($ali->id, $course->id, 'student', 'manual', time() + DAYSECS);
+        $answer = $this->check_ali('NYS1');
+        $this->assertTrue($this->is_problem($answer, 'enrolment_active'));
+        $this->assertStringContainsString(
+            get_string('check_detail_notstarted', 'aiplacement_assistant'),
+            $this->check_row($answer, 'enrolment_active')['value']
+        );
+    }
+
+    public function test_disabled_instance_only(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course(['shortname' => 'DIS1']);
+        $ali = $gen->create_user(['firstname' => 'Ali', 'lastname' => 'Raza']);
+        $gen->enrol_user($ali->id, $course->id, 'student');
+        $DB->set_field('enrol', 'status', ENROL_INSTANCE_DISABLED, ['courseid' => $course->id, 'enrol' => 'manual']);
+        $answer = $this->check_ali('DIS1');
+        $this->assertTrue($this->is_problem($answer, 'enrol_instance_enabled'));
+        $this->assertTrue($this->is_problem($answer, 'enrolment_active'));
+    }
 }

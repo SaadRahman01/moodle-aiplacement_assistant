@@ -30,6 +30,7 @@ $string['cachedef_ratelimit'] = 'Assistant rate limit counters';
 $string['check_category_visible'] = 'Course category visible';
 $string['check_course_visible'] = 'Course visible';
 $string['check_detail_expired'] = 'The enrolment has ended.';
+$string['check_detail_instancedisabled'] = 'The enrolment method is disabled.';
 $string['check_detail_notstarted'] = 'The enrolment has not started yet.';
 $string['check_detail_suspended'] = 'The enrolment is suspended.';
 $string['check_enrol_instance_enabled'] = 'Enrolment method enabled';

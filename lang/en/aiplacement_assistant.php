@@ -26,6 +26,14 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['assistant:use'] = 'Use the Moodle Assistant';
 $string['cachedef_ratelimit'] = 'Assistant rate limit counters';
+$string['error_aifailed'] = 'The assistant could not reach the AI service. Please try again.';
+$string['error_messageempty'] = 'Please type a message.';
+$string['error_messagetoolong'] = 'Your message is too long. Please shorten it to 2000 characters or fewer.';
+$string['error_notavailable'] = 'The assistant is not available here.';
+$string['error_policynotaccepted'] = 'Please accept the AI policy before using the assistant.';
+$string['error_ratelimited'] = 'You have reached the hourly limit for assistant requests. Please try again later.';
+$string['fallbackmenu'] = 'I was not sure what you meant. What would you like help with?';
+$string['intent_general_help'] = 'Get help with this page';
 $string['pluginname'] = 'Moodle Assistant';
 $string['privacy:metadata:aiplacement_assistant_msg'] = 'Conversation messages exchanged with the Moodle Assistant.';
 $string['privacy:metadata:aiplacement_assistant_msg:contextid'] = 'The context in which the message was sent.';

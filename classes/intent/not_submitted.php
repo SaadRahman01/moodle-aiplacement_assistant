@@ -114,18 +114,22 @@ class not_submitted extends intent_base {
             $fields = 'id, ' . implode(', ', \core_user\fields::get_name_fields());
             $users = $DB->get_records_list('user', 'id', array_keys($missing), '', $fields);
             $viewfullnames = has_capability('moodle/site:viewfullnames', $cmctx, $r->userid);
+            // Blind marking hides identities from graders who may not view blind details, as in the grading table.
+            $blind = $assign->is_blind_marking() && !has_capability('mod/assign:viewblinddetails', $cmctx, $r->userid);
             $url = (new \moodle_url('/mod/assign/view.php', ['id' => $cm->id, 'action' => 'grading']))->out(false);
             foreach ($missing as $userid => $status) {
                 if (!isset($users[$userid])) {
                     continue;
                 }
                 $rows[] = [
-                    'label' => fullname($users[$userid], $viewfullnames),
+                    'label' => $blind
+                        ? get_string('hiddenuser', 'assign') . $assign->get_uniqueid_for_user($userid)
+                        : fullname($users[$userid], $viewfullnames),
                     'value' => get_string($status, 'aiplacement_assistant'),
                     'url' => $url,
                 ];
             }
-            \core_collator::asort_array_of_arrays_by_key($rows, 'label');
+            \core_collator::asort_array_of_arrays_by_key($rows, 'label', \core_collator::SORT_NATURAL);
             $rows = array_values($rows);
         }
 

@@ -40,6 +40,12 @@ class forum_summary extends intent_base {
     /** @var int Maximum characters of forum text sent to the AI. */
     private const MAXCHARS = 12000;
 
+    /** @var string Replacement for the names of people who are not post authors. */
+    private const PARTICIPANT = 'a participant';
+
+    /** @var int Number of name alternatives compiled into one regex. */
+    private const REGEXCHUNK = 400;
+
     #[\Override]
     public static function name(): string {
         return 'forum_summary';
@@ -181,7 +187,9 @@ class forum_summary extends intent_base {
     /**
      * Build anonymised plain text for the posts.
      *
-     * Authors become Person 1..n in order of appearance and their names are also replaced inside the text.
+     * Email addresses become [email]. Authors become Person 1..n in order of appearance; the full names of
+     * authors, of every actively enrolled user and of the requester are replaced in the text (authors by their
+     * label, others by "a participant"); single first or last names are replaced only for authors.
      *
      * @param array $posts From visible_posts().
      * @param \context $context Forum context.
@@ -197,30 +205,58 @@ class forum_summary extends intent_base {
                 $labels[$authorid] = count($labels) + 1;
             }
         }
-        $fields = 'id, ' . implode(', ', \core_user\fields::get_name_fields());
-        $users = $DB->get_records_list('user', 'id', array_keys($labels), '', $fields);
+
+        $namefields = \core_user\fields::get_name_fields();
+        $people = get_enrolled_users(
+            $context->get_course_context(),
+            '',
+            0,
+            'u.id, ' . implode(', ', array_map(fn($f) => 'u.' . $f, $namefields)),
+            null,
+            0,
+            0,
+            true
+        );
+        $extra = array_diff(array_merge(array_keys($labels), [$userid]), array_keys($people));
+        if ($extra) {
+            $people += $DB->get_records_list('user', 'id', $extra, '', 'id, ' . implode(', ', $namefields));
+        }
         $viewfullnames = has_capability('moodle/site:viewfullnames', $context, $userid);
 
-        $realnames = [];
-        $patterns = [];
-        foreach ($labels as $authorid => $number) {
-            $label = 'Person ' . $number;
-            $realnames[$number] = isset($users[$authorid])
-                ? fullname($users[$authorid], $viewfullnames)
-                : get_string('unknownuser');
-            if (!isset($users[$authorid])) {
+        $participant = self::PARTICIPANT;
+        $map = [];
+        foreach ($people as $person) {
+            foreach (self::full_name_forms($person) as $form) {
+                $map[$form] = $participant;
+            }
+        }
+        $partowners = [];
+        foreach (array_keys($labels) as $authorid) {
+            if (!isset($people[$authorid])) {
                 continue;
             }
-            $u = $users[$authorid];
-            foreach ([fullname($u, true), fullname($u), $u->firstname, $u->lastname] as $part) {
-                $part = trim((string) $part);
-                if (\core_text::strlen($part) >= 2) {
-                    $patterns[$part] = $label;
+            foreach ([$people[$authorid]->firstname, $people[$authorid]->lastname] as $part) {
+                $part = self::normalise((string) $part);
+                if (self::usable_key($part) && $part !== 'person') {
+                    $partowners[$part][$authorid] = true;
                 }
             }
         }
-        // Longest names first so a full name is replaced before its parts.
-        uksort($patterns, fn($a, $b) => \core_text::strlen($b) <=> \core_text::strlen($a));
+        foreach ($partowners as $part => $owners) {
+            $map[$part] = count($owners) > 1 ? $participant : 'Person ' . $labels[array_key_first($owners)];
+        }
+        $realnames = [];
+        foreach ($labels as $authorid => $number) {
+            if (!isset($people[$authorid])) {
+                $realnames[$number] = get_string('unknownuser');
+                continue;
+            }
+            $realnames[$number] = fullname($people[$authorid], $viewfullnames);
+            foreach (self::full_name_forms($people[$authorid]) as $form) {
+                $map[$form] = 'Person ' . $number;
+            }
+        }
+        $regexes = self::compile($map);
 
         $lines = [];
         $current = null;
@@ -230,10 +266,10 @@ class forum_summary extends intent_base {
             if ($current !== $discussion->get_id()) {
                 $current = $discussion->get_id();
                 $lines[] = '';
-                $lines[] = 'Discussion: ' . self::scrub(self::plain($discussion->get_name()), $patterns);
+                $lines[] = 'Discussion: ' . self::scrub(self::plain($discussion->get_name()), $regexes, $map);
             }
             $lines[] = 'Person ' . $labels[$post->get_author_id()] . ': '
-                . self::scrub(self::plain($post->get_message()), $patterns);
+                . self::scrub(self::plain($post->get_message()), $regexes, $map);
         }
         return [trim(implode("\n", $lines)), $realnames];
     }
@@ -251,18 +287,93 @@ class forum_summary extends intent_base {
     }
 
     /**
-     * Replace known author names in text with their Person labels.
+     * Lower-cased full-name spellings of a user.
+     *
+     * @param \stdClass $user User record with name fields.
+     * @return string[]
+     */
+    private static function full_name_forms(\stdClass $user): array {
+        $first = trim((string) $user->firstname);
+        $last = trim((string) $user->lastname);
+        $middle = trim((string) ($user->middlename ?? ''));
+        $alt = trim((string) ($user->alternatename ?? ''));
+        $forms = [fullname($user), fullname($user, true), "{$first} {$last}", "{$last} {$first}"];
+        if ($middle !== '') {
+            $forms[] = "{$first} {$middle} {$last}";
+            $forms[] = "{$last} {$first} {$middle}";
+        }
+        if ($alt !== '') {
+            $forms[] = "{$alt} {$last}";
+            $forms[] = "{$last} {$alt}";
+        }
+        $result = [];
+        foreach ($forms as $form) {
+            $form = self::normalise($form);
+            if (self::usable_key($form)) {
+                $result[$form] = $form;
+            }
+        }
+        return array_values($result);
+    }
+
+    /**
+     * Lower-case and collapse whitespace, as matched against plain text.
      *
      * @param string $text Text.
-     * @param array $patterns name => label, longest first.
      * @return string
      */
-    private static function scrub(string $text, array $patterns): string {
-        foreach ($patterns as $name => $label) {
-            $pattern = '/(?<![\p{L}\p{N}])' . preg_quote($name, '/') . '(?![\p{L}\p{N}])/iu';
-            $text = preg_replace($pattern, $label, $text) ?? $text;
+    private static function normalise(string $text): string {
+        return \core_text::strtolower(trim(preg_replace('/\s+/u', ' ', $text) ?? $text));
+    }
+
+    /**
+     * Whether a name key is worth matching: at least two characters and not just digits.
+     *
+     * @param string $key Normalised key.
+     * @return bool
+     */
+    private static function usable_key(string $key): bool {
+        return \core_text::strlen($key) >= 2 && !preg_match('/^[\d\s]+$/u', $key);
+    }
+
+    /**
+     * Compile name keys into a few alternation regexes, longest keys first.
+     *
+     * @param array $map Normalised name => replacement.
+     * @return string[] Regexes.
+     */
+    private static function compile(array $map): array {
+        $keys = array_keys($map);
+        usort($keys, fn($a, $b) => strlen($b) <=> strlen($a));
+        $regexes = [];
+        foreach (array_chunk($keys, self::REGEXCHUNK) as $chunk) {
+            $alternatives = implode('|', array_map(fn($k) => preg_quote((string) $k, '/'), $chunk));
+            $regexes[] = '/(?<![\p{L}\p{N}])(?:' . $alternatives . ')(?![\p{L}\p{N}])/iu';
         }
-        return $text;
+        return $regexes;
+    }
+
+    /**
+     * Remove email addresses and replace known names in text.
+     *
+     * Matches are swapped for control-character tokens first so a replacement is never matched again.
+     *
+     * @param string $text Plain text.
+     * @param string[] $regexes From compile().
+     * @param array $map Normalised name => replacement.
+     * @return string
+     */
+    private static function scrub(string $text, array $regexes, array $map): string {
+        $text = str_replace(["\x01", "\x02"], '', $text);
+        $text = preg_replace('/[\p{L}\p{N}._%+\-]+@[\p{L}\p{N}\-]+(?:\.[\p{L}\p{N}\-]+)+/u', '[email]', $text) ?? '';
+        $found = [];
+        foreach ($regexes as $regex) {
+            $text = preg_replace_callback($regex, function (array $m) use (&$found, $map) {
+                $found[] = $map[self::normalise($m[0])] ?? self::PARTICIPANT;
+                return "\x01" . (count($found) - 1) . "\x02";
+            }, $text) ?? '';
+        }
+        return preg_replace_callback('/\x01(\d+)\x02/', fn(array $m) => $found[(int) $m[1]], $text) ?? '';
     }
 
     /**

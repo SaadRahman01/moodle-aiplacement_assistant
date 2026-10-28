@@ -184,6 +184,42 @@ final class teacher_intents_test extends \advanced_testcase {
     }
 
     /**
+     * Blind marking hides identities unless the user may view blind details.
+     */
+    public function test_not_submitted_blind_marking(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course();
+        $teacher = $gen->create_and_enrol($course, 'teacher');
+        $s1 = $gen->create_and_enrol($course, 'student', ['firstname' => 'Blinda', 'lastname' => 'Hiddenson']);
+        $s2 = $gen->create_and_enrol($course, 'student', ['firstname' => 'Masko', 'lastname' => 'Veilwright']);
+        $assigncm = $gen->create_module('assign', ['course' => $course->id, 'name' => 'Blind essay', 'blindmarking' => 1]);
+        $this->setUser($teacher);
+        $coursectx = \context_course::instance($course->id);
+        [$c, $cm] = get_course_and_cm_from_cmid($assigncm->cmid, 'assign');
+        $assign = new \assign(\context_module::instance($cm->id), $cm, $c);
+
+        $answer = (new not_submitted())->handle(['activity' => 'blind'], $this->request($teacher, $coursectx));
+        $expected = [
+            get_string('hiddenuser', 'assign') . $assign->get_uniqueid_for_user($s1->id),
+            get_string('hiddenuser', 'assign') . $assign->get_uniqueid_for_user($s2->id),
+        ];
+        sort($expected, SORT_NATURAL);
+        $this->assertSame($expected, array_column($answer->rows, 'label'));
+        $dump = json_encode($answer);
+        foreach (['Blinda', 'Hiddenson', 'Masko', 'Veilwright'] as $part) {
+            $this->assertStringNotContainsString($part, $dump);
+        }
+
+        $teacherrole = \core\di::get(\moodle_database::class)->get_field('role', 'id', ['shortname' => 'teacher']);
+        assign_capability('mod/assign:viewblinddetails', CAP_ALLOW, $teacherrole, $coursectx);
+        $answer = (new not_submitted())->handle(['activity' => 'blind'], $this->request($teacher, $coursectx));
+        $labels = array_column($answer->rows, 'label');
+        $this->assertContains(fullname($s1), $labels);
+        $this->assertContains(fullname($s2), $labels);
+    }
+
+    /**
      * Users who have not accessed the course within the window are listed.
      */
     public function test_inactive_users(): void {
@@ -303,6 +339,71 @@ final class teacher_intents_test extends \advanced_testcase {
         $this->assertStringContainsString('Tina Teacher answered', $answer->text);
         $this->assertSame([], $answer->rows);
         $this->assertStringContainsString('/mod/forum/view.php?id=' . $forum->cmid, $answer->links[0]['url']);
+    }
+
+    /**
+     * Emails, enrolled users' and the requester's full names, and shared first names never reach the AI.
+     */
+    public function test_forum_summary_scrubbing(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course();
+        $teacher = $gen->create_and_enrol($course, 'editingteacher', ['firstname' => 'Rhea', 'lastname' => 'Requester']);
+        $quiet = $gen->create_and_enrol($course, 'student', ['firstname' => 'Quentin', 'lastname' => 'Quietly',
+            'middlename' => 'Mid', 'alternatename' => 'Quinn']);
+        $j1 = $gen->create_and_enrol($course, 'student', ['firstname' => 'John', 'lastname' => 'Alpha']);
+        $j2 = $gen->create_and_enrol($course, 'student', ['firstname' => 'John', 'lastname' => 'Beta']);
+        $third = $gen->create_and_enrol($course, 'student', ['firstname' => 'Third', 'lastname' => 'Writer']);
+        $forum = $gen->create_module('forum', ['course' => $course->id, 'name' => 'Scrub']);
+        $forumgen = $gen->get_plugin_generator('mod_forum');
+        $d = $forumgen->create_discussion(['course' => $course->id, 'forum' => $forum->id, 'userid' => $j1->id,
+            'name' => 'Ask quentin.q@example.org', 'message' => 'Mail me: j.alpha+forum@mail.example.com please']);
+        $forumgen->create_post(['discussion' => $d->id, 'parent' => $d->firstpost, 'userid' => $j2->id,
+            'message' => 'I agree with Quentin Quietly and Quietly Quentin and Quentin Mid Quietly and Quinn Quietly.']);
+        $forumgen->create_post(['discussion' => $d->id, 'parent' => $d->firstpost, 'userid' => $third->id,
+            'message' => 'John said ask Rhea Requester. Person and 2024 stay.']);
+        $this->setUser($teacher);
+        $fake = $this->fake(['Summary']);
+
+        (new forum_summary())->handle(['forum' => 'scrub'], $this->request($teacher, \context_course::instance($course->id)));
+        $prompt = $fake->prompts[0];
+        foreach (['@', 'example', 'Quentin', 'Quietly', 'Quinn', 'Rhea', 'Requester', 'John', 'Alpha', 'Beta'] as $leak) {
+            $this->assertStringNotContainsString($leak, $prompt);
+        }
+        $this->assertStringContainsString('[email]', $prompt);
+        $agree = 'I agree with a participant and a participant and a participant and a participant.';
+        $this->assertStringContainsString($agree, $prompt);
+        $this->assertStringContainsString('a participant said ask a participant.', $prompt);
+        $this->assertStringContainsString('Person and 2024 stay.', $prompt);
+    }
+
+    /**
+     * Scrubbing stays fast in a course with many enrolled users.
+     */
+    public function test_forum_summary_scrubbing_large_course(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course();
+        $teacher = $gen->create_and_enrol($course, 'editingteacher');
+        $studentrole = \core\di::get(\moodle_database::class)->get_field('role', 'id', ['shortname' => 'student']);
+        $users = [];
+        for ($i = 0; $i < 300; $i++) {
+            $user = $gen->create_user(['firstname' => 'Bulk' . $i, 'lastname' => 'Learner' . $i]);
+            $gen->enrol_user($user->id, $course->id, $studentrole);
+            $users[] = $user;
+        }
+        $forum = $gen->create_module('forum', ['course' => $course->id, 'name' => 'Large']);
+        $gen->get_plugin_generator('mod_forum')->create_discussion(['course' => $course->id, 'forum' => $forum->id,
+            'userid' => $users[0]->id, 'message' => str_repeat('Thanks Bulk299 Learner299 and Bulk150 Learner150. ', 100)]);
+        $this->setUser($teacher);
+        $fake = $this->fake(['Summary']);
+
+        $start = microtime(true);
+        (new forum_summary())->handle(['forum' => 'large'], $this->request($teacher, \context_course::instance($course->id)));
+        $this->assertLessThan(5.0, microtime(true) - $start);
+        $this->assertStringNotContainsString('Learner299', $fake->prompts[0]);
+        $this->assertStringNotContainsString('Learner150', $fake->prompts[0]);
+        $this->assertStringContainsString('Thanks a participant and a participant.', $fake->prompts[0]);
     }
 
     /**

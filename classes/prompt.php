@@ -40,7 +40,11 @@ final class prompt {
         if (!preg_match('/^[a-z_]+$/', $label)) {
             throw new \coding_exception('Invalid prompt data label');
         }
-        $clean = str_replace(['<<<', '>>>'], '', $content);
+        $clean = $content;
+        do {
+            $previous = $clean;
+            $clean = preg_replace('/<{3,}|>{3,}/', '', $clean);
+        } while ($clean !== $previous);
         $clean = \core_text::substr($clean, 0, $maxchars);
         return "<<<DATA {$label}>>>\n{$clean}\n<<<END {$label}>>>";
     }

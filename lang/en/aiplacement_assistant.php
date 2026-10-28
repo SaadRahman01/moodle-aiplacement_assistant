@@ -24,8 +24,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['all_done'] = 'You have no unfinished activities in {$a}.';
 $string['assistant:use'] = 'Use the Moodle Assistant';
 $string['cachedef_ratelimit'] = 'Assistant rate limit counters';
+$string['completion_off'] = 'Activity completion is not enabled in that course, so I cannot tell what is unfinished.';
+$string['due_count'] = 'You have {$a->count} item(s) due in the next {$a->days} days.';
+$string['due_none'] = 'Nothing is due in the next {$a->days} days.';
 $string['error_aifailed'] = 'The assistant could not reach the AI service. Please try again.';
 $string['error_messageempty'] = 'Please type a message.';
 $string['error_messagetoolong'] = 'Your message is too long. Please shorten it to 2000 characters or fewer.';
@@ -33,7 +37,14 @@ $string['error_notavailable'] = 'The assistant is not available here.';
 $string['error_policynotaccepted'] = 'Please accept the AI policy before using the assistant.';
 $string['error_ratelimited'] = 'You have reached the hourly limit for assistant requests. Please try again later.';
 $string['fallbackmenu'] = 'I was not sure what you meant. What would you like help with?';
+$string['grade_found'] = 'Here is your grade in {$a}.';
+$string['grade_hidden'] = 'Your grade is not currently visible.';
+$string['intent_due_this_week'] = 'What is due soon';
 $string['intent_general_help'] = 'Get help with this page';
+$string['intent_my_grade'] = 'My grade in a course';
+$string['intent_unfinished_activities'] = 'My unfinished activities';
+$string['notfound_course'] = 'I could not find a course of yours matching that.';
+$string['pick_course'] = 'Which course did you mean?';
 $string['pluginname'] = 'Moodle Assistant';
 $string['privacy:metadata:aiplacement_assistant_msg'] = 'Conversation messages exchanged with the Moodle Assistant.';
 $string['privacy:metadata:aiplacement_assistant_msg:contextid'] = 'The context in which the message was sent.';
@@ -50,3 +61,4 @@ $string['ratelimit_desc'] = 'Maximum number of assistant requests each user may 
 $string['retentiondays'] = 'Conversation retention (days)';
 $string['retentiondays_desc'] = 'Number of days assistant conversations are kept before being deleted. 0 means keep them only for the current session; any stored history is deleted by the next cleanup run.';
 $string['task_cleanup_history'] = 'Delete old assistant conversation history';
+$string['unfinished_count'] = 'You have {$a->count} unfinished activities in {$a->course}.';

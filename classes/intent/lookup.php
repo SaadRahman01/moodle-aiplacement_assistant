@@ -156,4 +156,97 @@ class lookup {
         }
         return $rows;
     }
+
+    /**
+     * Courses on the site (not limited to the user's enrolments) whose full or short name contains the term.
+     *
+     * Callers must filter the result by capability before showing it.
+     *
+     * @param string $term Search term (case-insensitive).
+     * @param int $limit Maximum number of courses, 0 for no limit.
+     * @return array Course records keyed by id.
+     */
+    public static function courses(string $term, int $limit = 10): array {
+        global $DB;
+        $like = '%' . $DB->sql_like_escape(trim($term)) . '%';
+        $sql = "SELECT c.id, c.fullname, c.shortname, c.visible, c.category
+                  FROM {course} c
+                 WHERE c.id <> :siteid
+                   AND (" . $DB->sql_like('c.shortname', ':s1', false, false)
+                   . " OR " . $DB->sql_like('c.fullname', ':s2', false, false) . ")
+              ORDER BY c.fullname ASC, c.id ASC";
+        return $DB->get_records_sql($sql, ['siteid' => SITEID, 's1' => $like, 's2' => $like], 0, $limit);
+    }
+
+    /**
+     * Users matching a term, excluding deleted users and the guest user.
+     *
+     * Site-wide (no course id): an exact username or email match wins, otherwise a full name match.
+     * Scoped to a course: only users with any enrolment (including suspended) in it, matched by full name.
+     * Identity fields (username, email) are never searched in the scoped case.
+     *
+     * @param string $term Search term (case-insensitive).
+     * @param int $limit Maximum number of users.
+     * @param int|null $courseid Restrict to users enrolled in this course.
+     * @return array User records (id and name fields) keyed by id.
+     */
+    public static function users(string $term, int $limit = 10, ?int $courseid = null): array {
+        global $CFG, $DB;
+        $term = trim($term);
+        if ($term === '') {
+            return [];
+        }
+        $fields = implode(', ', array_map(fn($f) => 'u.' . $f, \core_user\fields::get_name_fields()));
+        $select = "SELECT DISTINCT u.id, u.suspended, {$fields}";
+        $from = " FROM {user} u";
+        $params = ['guestid' => $CFG->siteguest ?? 0, 'mnet' => $CFG->mnet_localhost_id];
+        if ($courseid !== null) {
+            $from .= " JOIN {user_enrolments} ue ON ue.userid = u.id
+                       JOIN {enrol} e ON e.id = ue.enrolid AND e.courseid = :courseid";
+            $params['courseid'] = $courseid;
+        }
+        $base = " WHERE u.deleted = 0 AND u.id <> :guestid AND u.mnethostid = :mnet";
+        $order = " ORDER BY u.lastname ASC, u.firstname ASC, u.id ASC";
+
+        if ($courseid === null) {
+            $exact = $DB->get_records_sql(
+                $select . $from . $base . " AND (" . $DB->sql_like('u.username', ':t1', false, false)
+                    . " OR " . $DB->sql_like('u.email', ':t2', false, false) . ")" . $order,
+                $params + ['t1' => $DB->sql_like_escape($term), 't2' => $DB->sql_like_escape($term)],
+                0,
+                $limit
+            );
+            if ($exact) {
+                return $exact;
+            }
+        }
+        $like = '%' . $DB->sql_like_escape($term) . '%';
+        $fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
+        return $DB->get_records_sql(
+            $select . $from . $base . " AND " . $DB->sql_like($fullname, ':name', false, false) . $order,
+            $params + ['name' => $like],
+            0,
+            $limit
+        );
+    }
+
+    /**
+     * Candidate rows for an ambiguous user match.
+     *
+     * Only the display name is shown, never email or other identity fields.
+     *
+     * @param array $users User records.
+     * @param int|null $courseid Course the search was scoped to, if any.
+     * @return array Rows.
+     */
+    public static function user_candidate_rows(array $users, ?int $courseid = null): array {
+        $rows = [];
+        foreach ($users as $user) {
+            $url = $courseid === null
+                ? new \moodle_url('/user/profile.php', ['id' => $user->id])
+                : new \moodle_url('/user/view.php', ['id' => $user->id, 'course' => $courseid]);
+            $rows[] = ['label' => fullname($user), 'value' => '', 'url' => $url->out(false)];
+        }
+        return $rows;
+    }
 }

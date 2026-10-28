@@ -50,8 +50,19 @@ class inactive_users extends intent_base {
     #[\Override]
     public function is_available(request $r): bool {
         $coursectx = $r->context->get_course_context(false);
-        return $coursectx && $coursectx->instanceid != SITEID
-            && has_capability('moodle/course:viewparticipants', $coursectx, $r->userid);
+        return $coursectx && $coursectx->instanceid != SITEID && self::can_view($coursectx, $r->userid);
+    }
+
+    /**
+     * Whether the user may see course participation for the course.
+     *
+     * @param \context $coursectx Course context.
+     * @param int $userid User id.
+     * @return bool
+     */
+    private static function can_view(\context $coursectx, int $userid): bool {
+        return has_capability('moodle/course:viewparticipants', $coursectx, $userid)
+            && has_capability('report/participation:view', $coursectx, $userid);
     }
 
     #[\Override]
@@ -63,7 +74,7 @@ class inactive_users extends intent_base {
             $days = self::DEFAULT_DAYS;
         }
         $coursectx = $r->context->get_course_context(false);
-        if (!$coursectx || !has_capability('moodle/course:viewparticipants', $coursectx, $r->userid)) {
+        if (!$coursectx || !self::can_view($coursectx, $r->userid)) {
             return new answer(fallback: get_string('notfound_course', 'aiplacement_assistant'));
         }
         $hidden = array_map('trim', explode(',', (string) ($CFG->hiddenuserfields ?? '')));

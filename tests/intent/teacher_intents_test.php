@@ -205,6 +205,13 @@ final class teacher_intents_test extends \advanced_testcase {
         $intent = new inactive_users();
         $this->assertTrue($intent->is_available($this->request($teacher, $coursectx)));
         $this->assertFalse($intent->is_available($this->request($teacher, \context_system::instance())));
+        // Students can view participants by default but not the participation report.
+        $this->assertFalse($intent->is_available($this->request($old, $coursectx)));
+        $this->setUser($old);
+        $answer = $intent->handle(['days' => 14], $this->request($old, $coursectx));
+        $this->assertSame([], $answer->rows);
+        $this->assertSame([], $answer->facts);
+        $this->setUser($teacher);
 
         $answer = $intent->handle(['days' => 14], $this->request($teacher, $coursectx));
         $byname = array_column($answer->rows, 'value', 'label');

@@ -16,11 +16,13 @@
 
 namespace aiplacement_assistant\intent;
 
+use aiplacement_assistant\ai_bridge;
 use aiplacement_assistant\answer;
+use aiplacement_assistant\prompt;
 use aiplacement_assistant\request;
 
 /**
- * General help intent (stub, completed in a later task).
+ * General help intent: how-to questions grounded in the page help.
  *
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
@@ -34,7 +36,8 @@ class general_help extends intent_base {
 
     #[\Override]
     public static function description(): string {
-        return 'General questions about using Moodle or the current page.';
+        return 'How-to questions about using Moodle or the current page, and any other question that '
+            . 'does not fit another intent.';
     }
 
     #[\Override]
@@ -44,6 +47,46 @@ class general_help extends intent_base {
 
     #[\Override]
     public function handle(array $params, request $r): answer {
-        return new answer();
+        $lang = current_language();
+        $docsurl = self::safe_docs_url($r->docsurl);
+        $prompt = prompt::PREAMBLE . "\n\n"
+            . prompt::untrusted('pagehelp', $r->pagehelp, 8000) . "\n\n"
+            . prompt::untrusted('question', $r->message, 2000) . "\n\n"
+            . "Answer using the page help and well-known Moodle behaviour, in language {$lang}, "
+            . 'at most 120 words. If you are not confident, reply exactly NOT_SURE.';
+
+        $generated = \core\di::get(ai_bridge::class)->generate($r->context, $r->userid, $prompt);
+        $trimmed = $generated === null ? '' : trim($generated);
+        if ($trimmed === '' || preg_match('/^NOT_SURE(?![\p{L}\p{N}_])/u', $trimmed)) {
+            $text = get_string('help_notsure', 'aiplacement_assistant');
+        } else {
+            $text = $trimmed;
+        }
+
+        return new answer(
+            text: $text,
+            links: [['label' => get_string('help_docs', 'aiplacement_assistant'), 'url' => $docsurl]]
+        );
+    }
+
+    /**
+     * Keep the supplied docs URL only if it is an https docs.moodle.org URL.
+     *
+     * @param string $url Supplied URL.
+     * @return string
+     */
+    private static function safe_docs_url(string $url): string {
+        $parts = parse_url($url);
+        if (
+            $parts !== false
+            && isset($parts['scheme'], $parts['host'])
+            && strtolower($parts['scheme']) === 'https'
+            && strtolower($parts['host']) === 'docs.moodle.org'
+            && !isset($parts['user'])
+            && !isset($parts['pass'])
+        ) {
+            return $url;
+        }
+        return get_docs_url('');
     }
 }

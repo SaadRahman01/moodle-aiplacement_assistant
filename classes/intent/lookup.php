@@ -96,4 +96,64 @@ class lookup {
         }
         return $rows;
     }
+
+    /**
+     * Activities of one module type in a course that the user can see, whose name contains the term.
+     *
+     * With an empty term and a request context that is a module of that type, only that module is returned;
+     * otherwise an empty term matches every visible activity of the type.
+     *
+     * @param \context $coursectx Course context, or a context inside the course such as the request context.
+     * @param string $modname Module name, e.g. 'assign'.
+     * @param string $term Activity name term (case-insensitive).
+     * @param int|null $userid User, defaults to the current user.
+     * @return \cm_info[] Matching course modules keyed by cm id.
+     */
+    public static function activity_in_course(\context $coursectx, string $modname, string $term, ?int $userid = null): array {
+        $term = trim($term);
+        $course = $coursectx->get_course_context(false);
+        if (!$course) {
+            return [];
+        }
+        $modinfo = get_fast_modinfo($course->instanceid, $userid ?? 0);
+        if ($term === '' && $coursectx->contextlevel == CONTEXT_MODULE) {
+            $cms = $modinfo->get_cms();
+            $cm = $cms[$coursectx->instanceid] ?? null;
+            if ($cm && $cm->modname === $modname) {
+                return $cm->uservisible ? [$cm->id => $cm] : [];
+            }
+        }
+        $result = [];
+        $needle = \core_text::strtolower($term);
+        foreach ($modinfo->get_instances_of($modname) as $cm) {
+            if (!$cm->uservisible) {
+                continue;
+            }
+            $name = \core_text::strtolower($cm->get_formatted_name());
+            if ($needle !== '' && \core_text::strpos($name, $needle) === false) {
+                continue;
+            }
+            $result[$cm->id] = $cm;
+        }
+        return $result;
+    }
+
+    /**
+     * Candidate rows for an ambiguous activity match.
+     *
+     * @param \cm_info[] $cms Course modules.
+     * @return array Rows.
+     */
+    public static function activity_candidate_rows(array $cms): array {
+        $rows = [];
+        foreach ($cms as $cm) {
+            $url = $cm->url;
+            $rows[] = [
+                'label' => $cm->get_formatted_name(),
+                'value' => '',
+                'url' => $url ? $url->out(false) : null,
+            ];
+        }
+        return $rows;
+    }
 }

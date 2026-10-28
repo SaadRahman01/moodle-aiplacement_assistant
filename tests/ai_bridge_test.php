@@ -133,7 +133,14 @@ final class ai_bridge_test extends \advanced_testcase {
      */
     public function test_generate_returns_null_on_unsuccessful_response(): void {
         $this->resetAfterTest();
-        $this->mock_manager(fn() => new response_generate_text(success: false, errorcode: 500, errormessage: 'x'));
+        // Newer cores also require an error name, so build the arguments from the constructor signature.
+        $args = ['success' => false, 'errorcode' => 500, 'errormessage' => 'x'];
+        $ctor = new \ReflectionMethod(response_generate_text::class, '__construct');
+        $params = array_map(fn($p) => $p->getName(), $ctor->getParameters());
+        if (in_array('error', $params, true)) {
+            $args['error'] = 'x';
+        }
+        $this->mock_manager(fn() => new response_generate_text(...$args));
         $this->assertNull(\core\di::get(ai_bridge::class)->generate(\context_system::instance(), 2, 'hi'));
     }
 

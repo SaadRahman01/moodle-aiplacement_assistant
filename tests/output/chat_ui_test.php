@@ -159,6 +159,30 @@ final class chat_ui_test extends \advanced_testcase {
     }
 
     /**
+     * On Moodle 5.0+ the button is hidden in a course with AI tools turned off (real bridge, no fake).
+     */
+    public function test_hidden_when_course_ai_tools_disabled(): void {
+        if (!method_exists(\core_ai\manager::class, 'is_action_enabled_in_context')) {
+            $this->markTestSkipped('Per-course AI tools setting requires Moodle 5.0 or later.');
+        }
+        \core\di::set(ai_bridge::class, new ai_bridge());
+        \core\di::get(\core_ai\manager::class)->create_provider_instance(
+            classname: '\aiprovider_openai\provider',
+            name: 'x',
+            enabled: true,
+            config: ['apikey' => 'x'],
+        );
+        \core\plugininfo\aiplacement::enable_plugin('assistant', 1);
+        $on = $this->getDataGenerator()->create_course(['enableaitools' => 1]);
+        $off = $this->getDataGenerator()->create_course(['enableaitools' => 0]);
+        $user = $this->getDataGenerator()->create_and_enrol($on, 'student');
+        $this->getDataGenerator()->enrol_user($user->id, $off->id, 'student');
+        $this->setUser($user);
+        $this->assertTrue(chat_ui::should_show($this->make_page($on)));
+        $this->assertFalse(chat_ui::should_show($this->make_page($off)));
+    }
+
+    /**
      * The footer hook renders the panel markup when shown.
      */
     public function test_hook_adds_panel(): void {

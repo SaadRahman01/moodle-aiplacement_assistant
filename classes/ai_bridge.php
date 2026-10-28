@@ -61,6 +61,14 @@ class ai_bridge {
         ) {
             return false;
         }
+        // Moodle 5.0+ lets courses and activities turn AI tools off; 4.5 has no such setting.
+        $manager = \core\di::get(\core_ai\manager::class);
+        if (
+            method_exists($manager, 'is_action_enabled_in_context')
+            && !$manager->is_action_enabled_in_context($context, $action)
+        ) {
+            return false;
+        }
         $providers = $this->call_manager('get_providers_for_actions', [$action], true);
         return !empty($providers[$action]);
     }

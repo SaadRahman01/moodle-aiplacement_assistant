@@ -107,6 +107,38 @@ final class ai_bridge_test extends \advanced_testcase {
     }
 
     /**
+     * Moodle 5.0+ course-level AI tools switch is respected.
+     *
+     * @dataProvider course_ai_tools_provider
+     * @param int $enableaitools Course enableaitools value.
+     * @param bool $expected Expected availability.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('course_ai_tools_provider')]
+    public function test_course_ai_tools_setting(int $enableaitools, bool $expected): void {
+        if (!method_exists(\core_ai\manager::class, 'is_action_enabled_in_context')) {
+            $this->markTestSkipped('Per-course AI tools setting requires Moodle 5.0 or later.');
+        }
+        $this->resetAfterTest();
+        $this->enable_placement();
+        $this->create_provider();
+        $course = $this->getDataGenerator()->create_course(['enableaitools' => $enableaitools]);
+        $this->setUser($this->getDataGenerator()->create_and_enrol($course, 'student'));
+        $this->assertSame($expected, \core\di::get(ai_bridge::class)->is_available(\context_course::instance($course->id)));
+    }
+
+    /**
+     * Course AI tools values.
+     *
+     * @return array
+     */
+    public static function course_ai_tools_provider(): array {
+        return [
+            'disabled' => [0, false],
+            'enabled' => [1, true],
+        ];
+    }
+
+    /**
      * Policy status is delegated to core.
      */
     public function test_policy_accepted_false_by_default(): void {

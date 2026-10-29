@@ -88,7 +88,7 @@ class access_check extends intent_base {
                 rows: lookup::user_candidate_rows(array_slice($users, 0, self::MAX_CANDIDATES, true), $scope),
             );
         }
-        return $this->diagnose(reset($users), $course, $coursectx);
+        return $this->diagnose(reset($users), $course, $coursectx, $r->userid);
     }
 
     /**
@@ -129,14 +129,22 @@ class access_check extends intent_base {
      * @param \stdClass $user The user (id, suspended, name fields).
      * @param \stdClass $course The course.
      * @param \context_course $coursectx Course context.
+     * @param int $requesterid The user asking.
      * @return answer
      */
-    private function diagnose(\stdClass $user, \stdClass $course, \context_course $coursectx): answer {
+    private function diagnose(\stdClass $user, \stdClass $course, \context_course $coursectx, int $requesterid): answer {
         global $DB;
         $now = time();
         $checks = [];
 
-        $checks['user_suspended'] = [empty($user->suspended), ''];
+        // Site-level account suspension is shown only to those who manage accounts, as in the normal Moodle UI.
+        $sysctx = \context_system::instance();
+        if (
+            has_capability('moodle/site:config', $sysctx, $requesterid)
+            || has_capability('moodle/user:update', $sysctx, $requesterid)
+        ) {
+            $checks['user_suspended'] = [empty($user->suspended), ''];
+        }
 
         $enrolments = $DB->get_records_sql(
             "SELECT ue.id, ue.status, ue.timestart, ue.timeend, e.status AS enrolstatus

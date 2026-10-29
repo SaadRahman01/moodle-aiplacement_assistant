@@ -155,6 +155,29 @@ final class access_check_test extends \advanced_testcase {
         $this->assertFalse($this->is_problem($answer, 'category_visible'));
     }
 
+    /**
+     * Site-level account suspension is shown only to those who manage user accounts.
+     */
+    public function test_account_suspension_row_only_for_account_managers(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course(['shortname' => 'SUSPU']);
+        $teacher = $gen->create_and_enrol($course, 'editingteacher');
+        $ali = $gen->create_user(['firstname' => 'Ali', 'lastname' => 'Raza', 'suspended' => 1]);
+        $gen->enrol_user($ali->id, $course->id, 'student');
+        $coursectx = \context_course::instance($course->id);
+
+        $this->setUser($teacher);
+        $answer = (new access_check())->handle(['user' => 'Ali Raza'], $this->request($teacher, $coursectx));
+        $this->assertNull($this->check_row($answer, 'user_suspended'));
+        $this->assertSame(['problems' => 0], $answer->facts);
+
+        $this->setAdminUser();
+        $answer = (new access_check())->handle(['user' => 'Ali Raza'], $this->request(get_admin(), $coursectx));
+        $this->assertTrue($this->is_problem($answer, 'user_suspended'));
+        $this->assertSame(['problems' => 1], $answer->facts);
+    }
+
     public function test_suspended_user_and_not_enrolled(): void {
         $this->resetAfterTest();
         $gen = $this->getDataGenerator();

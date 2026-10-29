@@ -108,7 +108,12 @@ class assistant {
             $question = $message;
         }
 
-        $answer = $intents[$name]->handle($params, $r);
+        try {
+            $answer = $intents[$name]->handle($params, $r);
+        } catch (\Throwable $e) {
+            debugging('Assistant intent ' . $name . ' failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            return self::error('generic');
+        }
         $text = $answer->text;
         if ($text === '' && $answer->facts === []) {
             // Nothing to phrase (not found, pick one, feature off): show the fixed text rather than let the AI guess.

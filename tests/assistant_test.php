@@ -39,6 +39,7 @@ final class assistant_test extends \advanced_testcase {
         parent::setUpBeforeClass();
         require_once($CFG->dirroot . '/ai/placement/assistant/tests/fixtures/fake_ai_bridge.php');
         require_once($CFG->dirroot . '/ai/placement/assistant/tests/fixtures/echo_intent.php');
+        require_once($CFG->dirroot . '/ai/placement/assistant/tests/fixtures/throwing_intent.php');
     }
 
     /**
@@ -276,6 +277,18 @@ final class assistant_test extends \advanced_testcase {
         $this->assertTrue($out['success']);
         $this->assertSame(get_string('notfound_course', 'aiplacement_assistant'), $out['text']);
         $this->assertCount(1, $fake->prompts);
+    }
+
+    /**
+     * An intent handler that throws gives a generic error and stores nothing.
+     */
+    public function test_handler_exception_gives_generic_error(): void {
+        $this->setup_fakes(['{"intent":"general_help","params":{}}'], [throwing_intent::class]);
+        $out = (new assistant())->respond($this->req());
+        $this->assertDebuggingCalled();
+        $this->assertFalse($out['success']);
+        $this->assertSame('generic', $out['error']);
+        $this->assertSame(0, $this->stored());
     }
 
     /**

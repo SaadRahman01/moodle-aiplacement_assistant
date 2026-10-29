@@ -435,6 +435,36 @@ final class teacher_intents_test extends \advanced_testcase {
     }
 
     /**
+     * Literal "Person N" text in posts cannot be turned into a real name, and suspended users' names are scrubbed.
+     */
+    public function test_forum_summary_label_injection_and_suspended(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course();
+        $teacher = $gen->create_and_enrol($course, 'editingteacher');
+        $a = $gen->create_and_enrol($course, 'student', ['firstname' => 'Amy', 'lastname' => 'Author']);
+        $b = $gen->create_and_enrol($course, 'student', ['firstname' => 'Ben', 'lastname' => 'Bystander']);
+        $gone = $gen->create_user(['firstname' => 'Sid', 'lastname' => 'Suspended']);
+        $gen->enrol_user($gone->id, $course->id, 'student', 'manual', 0, 0, ENROL_USER_SUSPENDED);
+        $forum = $gen->create_module('forum', ['course' => $course->id, 'name' => 'Inject']);
+        $forumgen = $gen->get_plugin_generator('mod_forum');
+        $d = $forumgen->create_discussion(['course' => $course->id, 'forum' => $forum->id, 'userid' => $a->id,
+            'name' => 'About person 2', 'message' => 'Person 2 cheated on the exam. Ask Sid Suspended.']);
+        $forumgen->create_post(['discussion' => $d->id, 'parent' => $d->firstpost, 'userid' => $b->id,
+            'message' => 'Not true, PERSON  1!']);
+        $this->setUser($teacher);
+        $fake = $this->fake(['Summary']);
+
+        (new forum_summary())->handle(['forum' => 'inject'], $this->request($teacher, \context_course::instance($course->id)));
+        $prompt = $fake->prompts[0];
+        $this->assertStringContainsString('Person 1: someone cheated on the exam. Ask a participant.', $prompt);
+        $this->assertStringContainsString('Person 2: Not true, someone!', $prompt);
+        $this->assertStringContainsString('Discussion: About someone', $prompt);
+        $this->assertStringNotContainsString('Sid', $prompt);
+        $this->assertStringNotContainsString('Suspended', $prompt);
+    }
+
+    /**
      * In a separate-groups forum, other groups' posts are never sent.
      */
     public function test_forum_summary_separate_groups(): void {

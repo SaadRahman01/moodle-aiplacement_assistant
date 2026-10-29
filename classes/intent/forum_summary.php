@@ -190,9 +190,10 @@ class forum_summary extends intent_base {
     /**
      * Build anonymised plain text for the posts.
      *
-     * Email addresses become [email]. Authors become Person 1..n in order of appearance; the full names of
-     * authors, of every actively enrolled user and of the requester are replaced in the text (authors by their
-     * label, others by "a participant"); single first or last names are replaced only for authors.
+     * Email addresses become [email] and literal "Person N" text becomes "someone". Authors become Person 1..n in
+     * order of appearance; the full names of authors, of every enrolled user (active or not) and of the requester
+     * are replaced in the text (authors by their label, others by "a participant"); single first or last names are
+     * replaced only for authors.
      *
      * @param array $posts From visible_posts().
      * @param \context $context Forum context.
@@ -218,7 +219,8 @@ class forum_summary extends intent_base {
             null,
             0,
             0,
-            true
+            // Include suspended and expired enrolments: this only builds the list of names to scrub.
+            false
         );
         $extra = array_diff(array_merge(array_keys($labels), [$userid]), array_keys($people));
         if ($extra) {
@@ -368,6 +370,8 @@ class forum_summary extends intent_base {
      */
     private static function scrub(string $text, array $regexes, array $map): string {
         $text = str_replace(["\x01", "\x02"], '', $text);
+        // Literal labels written by users would be swapped for real names later, so neutralise them first.
+        $text = preg_replace('/(?<![\p{L}\p{N}])person\s*\d+(?![\p{L}\p{N}])/iu', 'someone', $text) ?? '';
         $text = preg_replace('/[\p{L}\p{N}._%+\-]+@[\p{L}\p{N}\-]+(?:\.[\p{L}\p{N}\-]+)+/u', '[email]', $text) ?? '';
         $found = [];
         foreach ($regexes as $regex) {

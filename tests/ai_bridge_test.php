@@ -127,6 +127,26 @@ final class ai_bridge_test extends \advanced_testcase {
     }
 
     /**
+     * A category page is not affected by the AI tools setting of an unrelated course that shares its id.
+     */
+    public function test_category_context_ignores_course_setting(): void {
+        if (!method_exists(\core_ai\manager::class, 'is_action_enabled_in_context')) {
+            $this->markTestSkipped('Per-course AI tools setting requires Moodle 5.0 or later.');
+        }
+        $this->resetAfterTest();
+        $this->enable_placement();
+        $this->create_provider();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course(['enableaitools' => 0]);
+        do {
+            $category = $gen->create_category();
+        } while ($category->id < $course->id);
+        $this->assertEquals($course->id, $category->id, 'Could not line up the category and course ids');
+        $this->setAdminUser();
+        $this->assertTrue(\core\di::get(ai_bridge::class)->is_available(\context_coursecat::instance($category->id)));
+    }
+
+    /**
      * Course AI tools values.
      *
      * @return array

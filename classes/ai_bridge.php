@@ -61,10 +61,12 @@ class ai_bridge {
         ) {
             return false;
         }
-        // Moodle 5.0+ lets courses and activities turn AI tools off; 4.5 has no such setting.
+        // Moodle 5.0+ lets courses and activities turn AI tools off; 4.5 has no such setting. Only course and module
+        // contexts are checked: core treats a category id as a course id there, and categories have no such switch.
         $manager = \core\di::get(\core_ai\manager::class);
         if (
-            method_exists($manager, 'is_action_enabled_in_context')
+            in_array($context->contextlevel, [CONTEXT_COURSE, CONTEXT_MODULE])
+            && method_exists($manager, 'is_action_enabled_in_context')
             && !$manager->is_action_enabled_in_context($context, $action)
         ) {
             return false;

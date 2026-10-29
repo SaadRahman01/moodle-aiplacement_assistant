@@ -136,12 +136,17 @@ final class ai_bridge_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->enable_placement();
         $this->create_provider();
-        $gen = $this->getDataGenerator();
-        $course = $gen->create_course(['enableaitools' => 0]);
-        do {
-            $category = $gen->create_category();
-        } while ($category->id < $course->id);
-        $this->assertEquals($course->id, $category->id, 'Could not line up the category and course ids');
+        global $DB;
+        $category = $this->getDataGenerator()->create_category();
+        // A course row with AI tools off whose id equals the category id (core reads it as a course id).
+        $DB->delete_records('course', ['id' => $category->id]);
+        $DB->insert_record_raw('course', [
+            'id' => $category->id,
+            'category' => $category->id,
+            'fullname' => 'Unrelated course',
+            'shortname' => 'UNRELATED',
+            'enableaitools' => 0,
+        ], false, false, true);
         $this->setAdminUser();
         $this->assertTrue(\core\di::get(ai_bridge::class)->is_available(\context_coursecat::instance($category->id)));
     }

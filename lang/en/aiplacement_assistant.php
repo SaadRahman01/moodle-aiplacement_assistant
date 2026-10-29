@@ -37,6 +37,7 @@ $string['check_enrol_instance_enabled'] = 'Enrolment method enabled';
 $string['check_enrolled'] = 'Enrolled in the course';
 $string['check_enrolment_active'] = 'Enrolment active';
 $string['check_has_role'] = 'Has a role in the course';
+$string['check_history'] = 'I checked access to {$a->course} and found {$a->problems} possible problem(s).';
 $string['check_ok'] = 'OK';
 $string['check_problem'] = 'Problem';
 $string['check_summary_ok'] = 'I found no problems with {$a->user} accessing {$a->course}.';

@@ -337,6 +337,7 @@ final class teacher_intents_test extends \advanced_testcase {
 
         $this->assertStringContainsString('Zelda Zebra asked about X', $answer->text);
         $this->assertStringContainsString('Tina Teacher answered', $answer->text);
+        $this->assertSame("- Person 1 asked about X\n- Person 2 answered", $answer->historytext);
         $this->assertSame([], $answer->rows);
         $this->assertStringContainsString('/mod/forum/view.php?id=' . $forum->cmid, $answer->links[0]['url']);
     }

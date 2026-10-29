@@ -120,6 +120,8 @@ class forum_summary extends intent_base {
             text: self::restore_names(trim($reply), $realnames),
             fallback: get_string('summary_failed', 'aiplacement_assistant'),
             links: $links,
+            // History keeps the labelled summary, so real names never go back to the AI on a later turn.
+            historytext: trim($reply),
         );
     }
 

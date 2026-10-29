@@ -17,6 +17,8 @@
 namespace aiplacement_assistant;
 
 use aiplacement_assistant\intent\registry;
+use aiplacement_assistant\intent\access_check;
+use aiplacement_assistant\intent\forum_summary;
 use aiplacement_assistant\intent\general_help;
 
 /**
@@ -190,6 +192,76 @@ final class assistant_test extends \advanced_testcase {
         $this->assertSame('https://example.com/x', $out['links'][0]['url']);
         foreach ((new conversation((int) $this->req()->userid))->history() as $m) {
             $this->assertStringNotContainsString('SECRETNAME', $m['text']);
+        }
+    }
+
+    /**
+     * Real forum author names never enter the stored history or the next turn's router prompt.
+     */
+    public function test_forum_summary_names_never_reach_next_prompt(): void {
+        global $USER;
+        $fake = $this->setup_fakes([
+            '{"intent":"forum_summary","params":{"forum":"class"}}',
+            "- Person 1 asked about X\n- Person 2 answered",
+            '{"intent":"general_help","params":{}}',
+            'Some help.',
+        ], [forum_summary::class, general_help::class]);
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course();
+        $gen->enrol_user($USER->id, $course->id, 'editingteacher');
+        $zelda = $gen->create_and_enrol($course, 'student', ['firstname' => 'Zelda', 'lastname' => 'Zebra']);
+        $tom = $gen->create_and_enrol($course, 'student', ['firstname' => 'Tomas', 'lastname' => 'Tiger']);
+        $forum = $gen->create_module('forum', ['course' => $course->id, 'name' => 'Class forum']);
+        $forumgen = $gen->get_plugin_generator('mod_forum');
+        $d = $forumgen->create_discussion(['course' => $course->id, 'forum' => $forum->id, 'userid' => $zelda->id,
+            'message' => 'How does X work?']);
+        $forumgen->create_post(['discussion' => $d->id, 'parent' => $d->firstpost, 'userid' => $tom->id,
+            'message' => 'Like Y.']);
+        $ctx = \context_course::instance($course->id);
+
+        $a = new assistant();
+        $out = $a->respond(new request($ctx, (int) $USER->id, 'Summarise the class forum'));
+        $this->assertStringContainsString('Zelda Zebra asked about X', $out['text']);
+        $a->respond(new request($ctx, (int) $USER->id, 'And what else?'));
+
+        $this->assertCount(4, $fake->prompts);
+        foreach (['Zelda', 'Zebra', 'Tomas', 'Tiger'] as $name) {
+            $this->assertStringNotContainsString($name, $fake->prompts[2]);
+            foreach ((new conversation((int) $USER->id))->history() as $m) {
+                $this->assertStringNotContainsString($name, $m['text']);
+            }
+        }
+        $this->assertStringContainsString('Person 1 asked about X', $fake->prompts[2]);
+    }
+
+    /**
+     * The access check's fallback text names the checked user, but that name is never stored or re-sent.
+     */
+    public function test_access_check_name_never_reaches_next_prompt(): void {
+        global $USER;
+        $fake = $this->setup_fakes([
+            '{"intent":"access_check","params":{"user":"sslack","course":"SC1"}}',
+            null,
+            '{"intent":"general_help","params":{}}',
+            'Some help.',
+        ], [access_check::class, general_help::class]);
+        $this->setAdminUser();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course(['shortname' => 'SC1', 'fullname' => 'Smoke course']);
+        $gen->create_and_enrol($course, 'student', ['username' => 'sslack', 'firstname' => 'Sue', 'lastname' => 'Slacker']);
+        $ctx = \context_system::instance();
+
+        $a = new assistant();
+        $out = $a->respond(new request($ctx, (int) $USER->id, 'Why cannot sslack get into SC1?'));
+        $this->assertStringContainsString('Sue Slacker', $out['text']);
+        $a->respond(new request($ctx, (int) $USER->id, 'And what else?'));
+
+        $this->assertCount(4, $fake->prompts);
+        foreach (['Sue', 'Slacker'] as $name) {
+            $this->assertStringNotContainsString($name, $fake->prompts[2]);
+            foreach ((new conversation((int) $USER->id))->history() as $m) {
+                $this->assertStringNotContainsString($name, $m['text']);
+            }
         }
     }
 

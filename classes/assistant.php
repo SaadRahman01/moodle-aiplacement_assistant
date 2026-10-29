@@ -121,7 +121,9 @@ class assistant {
         }
 
         $conversation->add('user', $usertext, $r->context->id, $name);
-        $conversation->add('assistant', $text, $r->context->id, $name);
+        // The shown text may contain real names restored after the AI call; history is sent to the AI again.
+        $stored = $answer->historytext !== '' ? $answer->historytext : $text;
+        $conversation->add('assistant', $stored, $r->context->id, $name);
 
         return [
             'success' => true,

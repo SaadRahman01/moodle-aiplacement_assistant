@@ -32,6 +32,8 @@ final class answer {
      * @param string $fallback Text to show if the AI is unavailable.
      * @param array $rows List of ['label' => string, 'value' => string, 'url' => ?string].
      * @param array $links List of ['label' => string, 'url' => string].
+     * @param string $historytext Text stored in the conversation history instead of the shown text, when set.
+     *                            Must never contain other people's real names, as history is sent to the AI.
      */
     public function __construct(
         /** @var string Final answer text. */
@@ -44,6 +46,8 @@ final class answer {
         public array $rows = [],
         /** @var array Result links. */
         public array $links = [],
+        /** @var string Text stored in the conversation history instead of the shown text, when set. */
+        public string $historytext = '',
     ) {
     }
 }

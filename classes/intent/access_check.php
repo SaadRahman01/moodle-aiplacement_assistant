@@ -221,6 +221,8 @@ class access_check extends intent_base {
                     'url' => (new \moodle_url('/enrol/instances.php', ['id' => $course->id]))->out(false),
                 ],
             ],
+            // The fallback names the checked user; history is sent to the AI again, so store a version without it.
+            historytext: get_string('check_history', 'aiplacement_assistant', $a),
         );
     }
 }

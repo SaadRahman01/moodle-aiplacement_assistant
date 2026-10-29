@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
+    // Both settings take whole numbers of zero or more; 0 has a documented meaning for each.
     $settings = new \core_ai\admin\admin_settingspage_provider(
         'aiplacement_assistant',
         new lang_string('pluginname', 'aiplacement_assistant'),
@@ -37,7 +38,7 @@ if ($hassiteconfig) {
         new lang_string('ratelimit', 'aiplacement_assistant'),
         new lang_string('ratelimit_desc', 'aiplacement_assistant'),
         30,
-        PARAM_INT
+        '/^\d+$/'
     ));
 
     $settings->add(new admin_setting_configtext(
@@ -45,6 +46,6 @@ if ($hassiteconfig) {
         new lang_string('retentiondays', 'aiplacement_assistant'),
         new lang_string('retentiondays_desc', 'aiplacement_assistant'),
         30,
-        PARAM_INT
+        '/^\d+$/'
     ));
 }

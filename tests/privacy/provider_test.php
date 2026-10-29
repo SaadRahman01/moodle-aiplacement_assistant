@@ -59,6 +59,14 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
         $names = array_map(fn($i) => $i->get_name(), $items);
         $this->assertContains('aiplacement_assistant_msg', $names);
         $this->assertContains('aiprovider', $names);
+        $external = $items[array_search('aiprovider', $names)];
+        $this->assertEqualsCanonicalizing(
+            ['facts', 'forumposts', 'history', 'message', 'pagehelp'],
+            array_keys($external->get_privacy_fields())
+        );
+        foreach ($external->get_privacy_fields() as $string) {
+            $this->assertTrue(get_string_manager()->string_exists($string, 'aiplacement_assistant'), $string);
+        }
     }
 
     /**

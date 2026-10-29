@@ -13,7 +13,7 @@ AI provider your site administrator has configured.
 ## Installation
 
 Copy (or clone) this repository to `ai/placement/assistant` in your Moodle
-codebase, then visit Site administration > Notifications to complete the
+codebase (`public/ai/placement/assistant` on Moodle 5.1 and later), then visit Site administration > Notifications to complete the
 install.
 
 ## Settings
@@ -25,10 +25,23 @@ install.
 
 Conversation messages are stored per user in `aiplacement_assistant_msg` for
 the retention period (0 = not stored; kept only for the browser session) and
-are covered by the Privacy API (export and deletion). The user's question and
-help text for the current page are sent to the AI provider configured by your
-site administrator; review that provider's privacy policy. Other people's
-names, grades and dates are rendered by Moodle and are not sent to the AI.
+are covered by the Privacy API (export and deletion).
+
+The following is sent to the AI provider configured by your site
+administrator; review that provider's privacy policy:
+
+- the user's question and recent conversation history (user and assistant
+  turns; real names restored into forum summaries are never stored or resent);
+- help text for the current page;
+- non-personal facts used to phrase answers (course, activity and forum names,
+  counts);
+- for forum summaries, the text of the forum posts the user can see, with
+  author names and email addresses replaced by placeholders. The post content
+  itself, which other people wrote, is sent.
+
+Other people's names, grades and dates shown in result rows are rendered by
+Moodle and are not sent to the AI. Core AI keeps the prompts it sends in its
+own action log, covered by core's privacy provider.
 
 ## Known limitations
 
@@ -54,6 +67,8 @@ Smoke-tested on 2026-10-28 against local Ollama models (qwen2.5:3b-instruct, qwe
 | 5.2 | qwen3:4b | not completed | | | Thinking-mode model: one request took over 30 minutes through the 5.2 provider, run abandoned |
 
 Notes: the counts treat any question where the expected intent was not chosen as a miss, including intents a role is not allowed to use (for example `not_submitted` and `inactive_users` for a student, `my_grade` for a teacher), which fall back to `general_help` by design. `due_this_week`, `not_submitted` (teacher/admin), `inactive_users` (teacher/admin) and `general_help` were routed correctly by qwen2.5:3b-instruct on both versions. Facts-to-text answers were sometimes inaccurate (for example "2 out of 30 days" for inactive users, or "no assignments due" with one listed). On 4.5 the student `my_grade` and `unfinished_activities` questions were misrouted while the same questions routed on 5.2; the cause was not investigated.
+
+These results predate later fixes and have not been re-run: the router prompt was rewritten (classify only, commands such as "Summarise ..." are normal requests, one example per intent, `general_help` only if nothing else fits); names such as "this course" or "this forum" now mean the current course or activity (the 5.2 student `my_grade` and `unfinished_activities` questions were routed correctly but found nothing for that reason); and answers with nothing to phrase now show the fixed text instead of asking the model. The `access_check` smoke question ("Why can't I access the Essay One assignment?") was also outside that intent's scope, which covers another user and a course, for example "Why can't Sue Slacker see Smoke Test Course?".
 
 ## License
 

@@ -55,7 +55,10 @@ class provider implements
 
         $collection->link_external_location('aiprovider', [
             'message' => 'privacy:metadata:aiprovider:message',
+            'history' => 'privacy:metadata:aiprovider:history',
             'pagehelp' => 'privacy:metadata:aiprovider:pagehelp',
+            'facts' => 'privacy:metadata:aiprovider:facts',
+            'forumposts' => 'privacy:metadata:aiprovider:forumposts',
         ], 'privacy:metadata:aiprovider');
 
         return $collection;

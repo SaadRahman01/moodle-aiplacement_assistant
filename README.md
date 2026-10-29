@@ -23,9 +23,12 @@ install.
 
 ## Privacy
 
-This early version stores no personal data. Prompts are sent to the AI provider
-configured by your site administrator; review that provider's privacy policy.
-The privacy provider will be updated as conversation storage is added.
+Conversation messages are stored per user in `aiplacement_assistant_msg` for
+the retention period (0 = not stored; kept only for the browser session) and
+are covered by the Privacy API (export and deletion). The user's question and
+help text for the current page are sent to the AI provider configured by your
+site administrator; review that provider's privacy policy. Other people's
+names, grades and dates are rendered by Moodle and are not sent to the AI.
 
 ## Known limitations
 
@@ -39,14 +42,14 @@ Smoke-tested on 2026-10-28 against local Ollama models (qwen2.5:3b-instruct, qwe
 
 ### Small-model reliability
 
-- The router asks the model for a JSON intent. Small models (3B to 4B) often pick `general_help` for questions that need a specific intent, and sometimes return JSON that cannot be parsed. When the reply cannot be parsed the assistant shows a menu of the intents available to the user instead of guessing. Use a larger model for better routing.
+- The router asks the model for a JSON intent. Small models (3B to 4B) often pick `general_help` for questions that need a specific intent. If a reply cannot be parsed, the assistant shows a menu of the intents available to the user instead of guessing (this did not happen in the smoke tests; every miss fell back to `general_help`). Use a larger model for better routing.
 - Answers written from facts by small models are sometimes clumsy or imprecise (for example "no assignments due this week" while the facts list one).
 
 ### Smoke results (expected intent routed / 8 questions per role)
 
 | Moodle | Model | Student | Teacher | Admin | Misrouted or poor (all roles) |
 |---|---|---|---|---|---|
-| 4.5 (OpenAI provider to Ollama) | qwen2.5:3b-instruct | 2/8 | 4/8 | 4/8 | `forum_summary` and `access_check` always answered by `general_help` ("not sure"); `my_grade` and `unfinished_activities` misrouted to `general_help` on 4.5 for every role |
+| 4.5 (OpenAI provider to Ollama) | qwen2.5:3b-instruct | 2/8 | 4/8 | 4/8 | `forum_summary` and `access_check` always answered by `general_help` ("not sure"); student `my_grade` and `unfinished_activities` misrouted to `general_help` |
 | 5.2 (`aiprovider_ollama`) | qwen2.5:3b-instruct | 4/8 | 4/8 | 5/8 | `forum_summary` always misrouted to `general_help`; `access_check` misrouted for student and teacher; `my_grade` and `unfinished_activities` routed for the student only |
 | 5.2 | qwen3:4b | not completed | | | Thinking-mode model: one request took over 30 minutes through the 5.2 provider, run abandoned |
 

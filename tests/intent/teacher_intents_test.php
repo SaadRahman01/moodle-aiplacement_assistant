@@ -551,4 +551,24 @@ final class teacher_intents_test extends \advanced_testcase {
         $this->assertCount(1, lookup::activity_in_course($coursectx, 'forum', ''));
         $this->assertSame([], lookup::activity_in_course($coursectx, 'assign', ''));
     }
+
+    /**
+     * Deictic activity terms such as "this forum" mean the current activity, or any one in the course.
+     */
+    public function test_activity_in_course_deictic(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course();
+        $student = $gen->create_and_enrol($course, 'student');
+        $forum = $gen->create_module('forum', ['course' => $course->id, 'name' => 'Course Chat']);
+        $gen->create_module('forum', ['course' => $course->id, 'name' => 'News']);
+        $this->setUser($student);
+        $modctx = \context_module::instance($forum->cmid);
+        $coursectx = \context_course::instance($course->id);
+
+        $this->assertSame([$forum->cmid], array_keys(lookup::activity_in_course($modctx, 'forum', 'this forum')));
+        $this->assertSame([$forum->cmid], array_keys(lookup::activity_in_course($modctx, 'forum', 'the forum')));
+        $this->assertSame([$forum->cmid], array_keys(lookup::activity_in_course($coursectx, 'forum', 'the Course Chat forum')));
+        $this->assertCount(2, lookup::activity_in_course($coursectx, 'forum', 'this forum'));
+    }
 }

@@ -26,6 +26,32 @@ use aiplacement_assistant\request;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class lookup {
+    /** @var string[] Leading words that only point at the current item, e.g. "this" in "this course". */
+    private const DEICTIC = ['this', 'the', 'my', 'current', 'our'];
+
+    /** @var string[] Trailing type nouns, e.g. "forum" in "the Course Chat forum". */
+    private const TYPENOUNS = ['course', 'class', 'forum', 'assignment', 'activity'];
+
+    /**
+     * Normalise a name term from the router.
+     *
+     * Small models often fill a name with "this course" or "the forum". Leading deictic words and one trailing
+     * type noun are stripped, so such terms become empty and fall back to the current context.
+     *
+     * @param string $term Raw term.
+     * @return string Normalised term, possibly empty.
+     */
+    public static function normalise_term(string $term): string {
+        $words = preg_split('/\s+/u', trim($term), -1, PREG_SPLIT_NO_EMPTY);
+        while ($words && in_array(\core_text::strtolower($words[0]), self::DEICTIC, true)) {
+            array_shift($words);
+        }
+        if ($words && in_array(\core_text::strtolower(end($words)), self::TYPENOUNS, true)) {
+            array_pop($words);
+        }
+        return implode(' ', $words);
+    }
+
     /**
      * Courses the user is actively enrolled in and may see, whose full or short name contains the term.
      *
@@ -59,14 +85,15 @@ class lookup {
     /**
      * Resolve the course(s) a request refers to.
      *
-     * With an empty term and a request made from inside a course, that course is used.
+     * With an empty (or deictic, such as "this course") term and a request made from inside a course,
+     * that course is used.
      *
      * @param request $r The request.
      * @param string $term Course name term from the router.
      * @return array Matching course records keyed by id.
      */
     public static function resolve_courses(request $r, string $term): array {
-        $term = trim($term);
+        $term = self::normalise_term($term);
         if ($term === '') {
             $coursecontext = $r->context->get_course_context(false);
             if (!$coursecontext) {
@@ -110,7 +137,7 @@ class lookup {
      * @return \cm_info[] Matching course modules keyed by cm id.
      */
     public static function activity_in_course(\context $coursectx, string $modname, string $term, ?int $userid = null): array {
-        $term = trim($term);
+        $term = self::normalise_term($term);
         $course = $coursectx->get_course_context(false);
         if (!$course) {
             return [];

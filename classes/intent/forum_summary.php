@@ -59,7 +59,7 @@ class forum_summary extends intent_base {
     #[\Override]
     public static function params(): array {
         return [
-            'forum' => ['type' => PARAM_TEXT, 'description' => 'Forum name (optional)'],
+            'forum' => ['type' => PARAM_TEXT, 'description' => 'Forum name; leave empty if the user means the current forum or did not name one'],
         ];
     }
 

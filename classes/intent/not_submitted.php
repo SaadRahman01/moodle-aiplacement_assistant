@@ -40,7 +40,7 @@ class not_submitted extends intent_base {
     #[\Override]
     public static function params(): array {
         return [
-            'activity' => ['type' => PARAM_TEXT, 'description' => 'Assignment name (optional)'],
+            'activity' => ['type' => PARAM_TEXT, 'description' => 'Assignment name; leave empty if the user means the current assignment or did not name one'],
         ];
     }
 

@@ -107,7 +107,28 @@ final class general_help_test extends \advanced_testcase {
             'space' => ['NOT_SURE I think'],
             'null' => [null],
             'empty' => ['   '],
+            'double quoted' => ['"NOT_SURE"'],
+            'single quoted' => ["'NOT_SURE'"],
+            'backticks' => ['`NOT_SURE`'],
+            'bold' => ['**NOT_SURE**'],
         ];
+    }
+
+    /**
+     * An empty question (the menu item was picked) asks what the user needs, without an AI call.
+     */
+    public function test_empty_question_asks_without_ai(): void {
+        $this->resetAfterTest();
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $fake = new fake_ai_bridge();
+        $fake->responses = ['Invented help.'];
+        \core\di::set(ai_bridge::class, $fake);
+        $r = new request(\context_system::instance(), (int) $user->id, '  ');
+        $answer = (new general_help())->handle([], $r);
+        $this->assertSame(get_string('help_ask', 'aiplacement_assistant'), $answer->text);
+        $this->assertCount(0, $fake->prompts);
+        $this->assertCount(1, $answer->links);
     }
 
     /**

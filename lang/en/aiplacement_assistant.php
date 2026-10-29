@@ -58,6 +58,7 @@ $string['fallbackmenu'] = 'I was not sure what you meant. What would you like he
 $string['forum_empty'] = 'There are no posts you can see in {$a}.';
 $string['grade_found'] = 'Here is your grade in {$a}.';
 $string['grade_hidden'] = 'Your grade is not currently visible.';
+$string['help_ask'] = 'What would you like help with? Type your question about this page below.';
 $string['help_docs'] = 'Moodle documentation';
 $string['help_notsure'] = 'I am not sure about that one, so I would rather not guess. The Moodle documentation should help.';
 $string['inactive_count'] = '{$a->count} participant(s) have not accessed this course in the last {$a->days} days.';

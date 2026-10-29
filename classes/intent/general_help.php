@@ -47,8 +47,13 @@ class general_help extends intent_base {
 
     #[\Override]
     public function handle(array $params, request $r): answer {
-        $lang = current_language();
         $docsurl = self::safe_docs_url($r->docsurl);
+        $links = [['label' => get_string('help_docs', 'aiplacement_assistant'), 'url' => $docsurl]];
+        if (trim($r->message) === '') {
+            // Picked from the menu with no question: ask, rather than send the AI nothing to answer.
+            return new answer(text: get_string('help_ask', 'aiplacement_assistant'), links: $links);
+        }
+        $lang = current_language();
         $prompt = prompt::PREAMBLE . "\n\n"
             . prompt::untrusted('pagehelp', $r->pagehelp, 8000) . "\n\n"
             . prompt::untrusted('question', $r->message, 2000) . "\n\n"
@@ -57,16 +62,15 @@ class general_help extends intent_base {
 
         $generated = \core\di::get(ai_bridge::class)->generate($r->context, $r->userid, $prompt);
         $trimmed = $generated === null ? '' : trim($generated);
-        if ($trimmed === '' || preg_match('/^NOT_SURE(?![\p{L}\p{N}_])/u', $trimmed)) {
+        // Models sometimes wrap the sentinel in quotes, backticks or bold markers.
+        $unwrapped = ltrim($trimmed, " \t\n\r\"'`*");
+        if ($trimmed === '' || preg_match('/^NOT_SURE(?![\p{L}\p{N}_])/u', $unwrapped)) {
             $text = get_string('help_notsure', 'aiplacement_assistant');
         } else {
             $text = $trimmed;
         }
 
-        return new answer(
-            text: $text,
-            links: [['label' => get_string('help_docs', 'aiplacement_assistant'), 'url' => $docsurl]]
-        );
+        return new answer(text: $text, links: $links);
     }
 
     /**

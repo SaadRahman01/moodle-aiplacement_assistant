@@ -616,7 +616,7 @@ final class teacher_intents_test extends \advanced_testcase {
         $coursectx = \context_course::instance($course->id);
 
         $this->assertSame([$forum->cmid], array_keys(lookup::activity_in_course($coursectx, 'forum', 'Q&A')));
-        // "q&a" happens to be a prefix of the escaped "q&amp;a"; this term is not.
+        // The term "q&a" happens to be a prefix of the escaped "q&amp;a"; this term is not.
         $this->assertSame([$tips->cmid], array_keys(lookup::activity_in_course($coursectx, 'forum', 'tips & tricks')));
         $rows = lookup::activity_candidate_rows(lookup::activity_in_course($coursectx, 'forum', ''));
         $this->assertContains('Q&A forum', array_column($rows, 'label'));

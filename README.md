@@ -45,6 +45,9 @@ own action log, covered by core's privacy provider.
 
 ## Known limitations
 
+- A forum summary shown again after a page reload uses Person N labels instead of real names. This is deliberate: conversation history is sent to the AI on later turns, so it never stores real names.
+- An instruction hidden in a forum post (for example one that spells out "Person" and a number) may still lead the model to write a claim about "Person N", which Moodle then shows with that author's real name. Read summaries of untrusted forums with care.
+
 Smoke-tested on 2026-10-28 against local Ollama models (qwen2.5:3b-instruct, qwen3:4b) with a throwaway course, one question per intent, as student, teacher and admin. "Correct" means the intent that was expected was chosen by the model.
 
 ### Provider routes

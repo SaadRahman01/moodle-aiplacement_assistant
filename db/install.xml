@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="ai/placement/assistant/db" VERSION="2026102801" COMMENT="XMLDB file for Moodle ai/placement/assistant"
+<XMLDB PATH="ai/placement/assistant/db" VERSION="2026102900" COMMENT="XMLDB file for Moodle ai/placement/assistant"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
@@ -21,6 +21,7 @@
       <INDEXES>
         <INDEX NAME="userid_timecreated" UNIQUE="false" FIELDS="userid, timecreated"/>
         <INDEX NAME="timecreated" UNIQUE="false" FIELDS="timecreated"/>
+        <INDEX NAME="contextid" UNIQUE="false" FIELDS="contextid"/>
       </INDEXES>
     </TABLE>
   </TABLES>

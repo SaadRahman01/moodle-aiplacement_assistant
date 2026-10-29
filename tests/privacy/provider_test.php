@@ -70,6 +70,15 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
     }
 
     /**
+     * Per-context privacy deletes use an index on contextid.
+     */
+    public function test_contextid_index_exists(): void {
+        global $DB;
+        $columns = array_map(fn($index) => $index['columns'], $DB->get_indexes('aiplacement_assistant_msg'));
+        $this->assertContains(['contextid'], array_values($columns));
+    }
+
+    /**
      * Contexts are those of the user's rows.
      */
     public function test_get_contexts_for_userid(): void {

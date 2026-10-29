@@ -47,7 +47,7 @@ class access_check extends intent_base {
             'user' => ['type' => PARAM_TEXT, 'description' => 'Name, username or email of the user being checked'],
             'course' => [
                 'type' => PARAM_TEXT,
-                'description' => 'Course name or short name (optional, defaults to the current course)',
+                'description' => 'Course name or short name; leave empty if the user means the current course',
             ],
         ];
     }
@@ -61,7 +61,7 @@ class access_check extends intent_base {
     #[\Override]
     public function handle(array $params, request $r): answer {
         // Resolve the course first, so that nothing is revealed about users unless the course is one we may inspect.
-        $courses = $this->resolve_courses($r, trim((string) ($params['course'] ?? '')));
+        $courses = $this->resolve_courses($r, lookup::normalise_term((string) ($params['course'] ?? '')));
         if (!$courses) {
             return new answer(fallback: get_string('notfound_course', 'aiplacement_assistant'));
         }

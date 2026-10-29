@@ -152,6 +152,68 @@ final class student_intents_test extends \advanced_testcase {
     }
 
     /**
+     * Deictic course terms such as "this course" mean the current course.
+     *
+     * @dataProvider deictic_course_provider
+     * @param string $term Course term from the router.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('deictic_course_provider')]
+    public function test_my_grade_deictic_course(string $term): void {
+        $this->resetAfterTest();
+        [$student, $course] = $this->grade_setup();
+        $ctx = \context_course::instance($course->id);
+        $answer = (new my_grade())->handle(['course' => $term], $this->request($student, $ctx));
+        $this->assertCount(1, $answer->rows);
+        $this->assertStringContainsString('80', $answer->rows[0]['value']);
+    }
+
+    /**
+     * Deictic course terms.
+     *
+     * @return array
+     */
+    public static function deictic_course_provider(): array {
+        return [
+            'this course' => ['this course'],
+            'my course' => ['My Course'],
+            'the current course' => ['the current course'],
+            'our class' => ['our class'],
+            'the grade course' => ['the Grade course'],
+        ];
+    }
+
+    /**
+     * Normalising terms strips leading deictic words and one trailing type noun.
+     *
+     * @dataProvider normalise_term_provider
+     * @param string $term Raw term.
+     * @param string $expected Normalised term.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('normalise_term_provider')]
+    public function test_normalise_term(string $term, string $expected): void {
+        $this->assertSame($expected, lookup::normalise_term($term));
+    }
+
+    /**
+     * Terms and their normalised form.
+     *
+     * @return array
+     */
+    public static function normalise_term_provider(): array {
+        return [
+            ['this course', ''],
+            ['  the   forum ', ''],
+            ['my current course', ''],
+            ['this assignment', ''],
+            ['the Course Chat forum', 'Course Chat'],
+            ['Chemistry', 'Chemistry'],
+            ['Biology course', 'Biology'],
+            ['Thermodynamics', 'Thermodynamics'],
+            ['', ''],
+        ];
+    }
+
+    /**
      * Only incomplete, visible, completion-tracked activities are listed.
      */
     public function test_unfinished_activities(): void {

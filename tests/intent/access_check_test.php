@@ -182,6 +182,12 @@ final class access_check_test extends \advanced_testcase {
             $this->request(get_admin(), \context_course::instance($course->id))
         );
         $this->assertSame(['problems' => 0], $answer->facts);
+
+        $answer = (new access_check())->handle(
+            ['user' => 'Ali Raza', 'course' => 'this course'],
+            $this->request(get_admin(), \context_course::instance($course->id))
+        );
+        $this->assertSame(['problems' => 0], $answer->facts);
     }
 
     public function test_teacher_other_course_notfound(): void {

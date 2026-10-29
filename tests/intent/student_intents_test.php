@@ -318,6 +318,35 @@ final class student_intents_test extends \advanced_testcase {
     }
 
     /**
+     * A calculated total that depends on a hidden item is hidden, as in the user report.
+     *
+     * Core puts such a total in "unknowngrades" rather than "altered" and blanks it.
+     */
+    public function test_my_grade_calculated_total_with_hidden_dependency(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $student = $gen->create_user();
+        $course = $gen->create_course(['fullname' => 'Calculated course']);
+        $gen->enrol_user($student->id, $course->id, 'student');
+        $secret = new \grade_item($gen->create_grade_item([
+            'courseid' => $course->id,
+            'itemtype' => 'manual',
+            'itemname' => 'Secret',
+            'grademax' => 100,
+            'hidden' => 1,
+        ]), false);
+        $secret->update_final_grade($student->id, 77);
+        $courseitem = \grade_item::fetch_course_item($course->id);
+        $courseitem->set_calculation('=##gi' . $secret->id . '##');
+        grade_regrade_final_grades($course->id);
+        $this->setUser($student);
+
+        $answer = (new my_grade())->handle(['course' => 'Calculated'], $this->request($student));
+        $this->assertSame(get_string('grade_hidden', 'aiplacement_assistant'), $answer->rows[0]['value']);
+        $this->assertStringNotContainsString('77', $answer->rows[0]['value']);
+    }
+
+    /**
      * Users who can view hidden grades see the real total.
      */
     public function test_my_grade_total_with_hidden_items_viewhidden(): void {

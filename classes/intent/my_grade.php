@@ -143,7 +143,9 @@ class my_grade extends intent_base {
 
         $courseitem = \grade_item::fetch_course_item($courseid);
         $affected = \grade_grade::get_hiding_affected($grades, $items);
-        $keys = ['altered', 'alteredgrademin', 'alteredgrademax', 'alteredaggregationstatus', 'alteredaggregationweight'];
+        // A calculated or locked total that depends on hidden items is "unknown"; the user report blanks it too.
+        $keys = ['unknowngrades', 'altered', 'alteredgrademin', 'alteredgrademax', 'alteredaggregationstatus',
+            'alteredaggregationweight'];
         foreach ($keys as $key) {
             if (array_key_exists($courseitem->id, $affected[$key])) {
                 return true;

@@ -34,7 +34,7 @@ class my_grade extends intent_base {
 
     #[\Override]
     public static function description(): string {
-        return 'The user\'s own overall grade in a course.';
+        return 'The user\'s own overall grade in a course, e.g. "What is my grade in Biology?"';
     }
 
     #[\Override]

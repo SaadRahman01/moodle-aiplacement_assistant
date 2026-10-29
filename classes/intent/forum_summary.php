@@ -53,7 +53,8 @@ class forum_summary extends intent_base {
 
     #[\Override]
     public static function description(): string {
-        return 'Summarise the recent discussion in a forum.';
+        return 'Summarise or give an overview of the recent posts in a forum, '
+            . 'e.g. "Summarise the Course Chat forum" or "What are people saying in the news forum?"';
     }
 
     #[\Override]

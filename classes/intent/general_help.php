@@ -36,8 +36,8 @@ class general_help extends intent_base {
 
     #[\Override]
     public static function description(): string {
-        return 'How-to questions about using Moodle or the current page, and any other question that '
-            . 'does not fit another intent.';
+        return 'How-to questions about using Moodle or the current page, e.g. "How do I upload a file?" '
+            . 'Use only if no other intent fits.';
     }
 
     #[\Override]

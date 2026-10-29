@@ -34,7 +34,7 @@ class unfinished_activities extends intent_base {
 
     #[\Override]
     public static function description(): string {
-        return 'Which activities the user has not completed yet in a course.';
+        return 'Which activities the user has not completed yet in a course, e.g. "What do I still need to finish?"';
     }
 
     #[\Override]

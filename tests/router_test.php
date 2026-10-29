@@ -120,11 +120,37 @@ final class router_test extends \advanced_testcase {
             $history[] = ['role' => 'user', 'text' => "msg{$i}x"];
         }
         $p = (new router())->build_prompt('hello', $history, $this->intents(), 'en');
-        $this->assertStringStartsWith(prompt::PREAMBLE, $p);
+        $this->assertStringStartsWith(router::FRAMING, $p);
         $this->assertStringNotContainsString('msg2x', $p);
         $this->assertStringContainsString('msg3x', $p);
         $this->assertStringContainsString('course (', $p);
         $this->assertStringContainsString('<<<DATA history>>>', $p);
+    }
+
+    /**
+     * The router prompt frames the job as classification, treats commands as normal and lists general_help last.
+     */
+    public function test_build_prompt_classify_framing(): void {
+        $intents = ['general_help' => new general_help(), 'my_grade' => new fake_grade_intent()];
+        $p = (new router())->build_prompt('Summarise the forum', [], $intents, 'en');
+        $this->assertStringContainsString('Your only job is to classify', $p);
+        $this->assertStringContainsString('Requests phrased as commands', $p);
+        $this->assertStringContainsString('"this course"', $p);
+        // The general_help line comes after every other intent and says it is the last resort.
+        $this->assertGreaterThan(strpos($p, "\nmy_grade: "), strpos($p, "\ngeneral_help: "));
+        $this->assertMatchesRegularExpression('/general_help: .*only if no other intent fits/', $p);
+        // The reply instruction is the last thing in the prompt.
+        $this->assertGreaterThan(strpos($p, '<<<END message>>>'), strpos($p, 'Reply with only JSON'));
+        $this->assertStringNotContainsString('Use general_help for how-to questions or anything else.', $p);
+    }
+
+    /**
+     * Every real intent gives an example request in its description.
+     */
+    public function test_real_intents_have_examples(): void {
+        foreach (\aiplacement_assistant\intent\registry::INTENTS as $class) {
+            $this->assertStringContainsString('e.g. "', $class::description(), $class);
+        }
     }
 
     /**

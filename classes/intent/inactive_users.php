@@ -37,7 +37,8 @@ class inactive_users extends intent_base {
 
     #[\Override]
     public static function description(): string {
-        return 'Which participants have not accessed this course recently (for teachers).';
+        return 'Which participants have not accessed this course recently (for teachers), '
+            . 'e.g. "Which students have not logged in for two weeks?"';
     }
 
     #[\Override]

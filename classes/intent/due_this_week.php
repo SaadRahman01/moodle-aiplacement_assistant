@@ -34,7 +34,8 @@ class due_this_week extends intent_base {
 
     #[\Override]
     public static function description(): string {
-        return 'Which of the user\'s own assignments, quizzes or other activities are due soon.';
+        return 'Which of the user\'s own assignments, quizzes or other activities are due soon, '
+            . 'e.g. "What is due this week?"';
     }
 
     #[\Override]

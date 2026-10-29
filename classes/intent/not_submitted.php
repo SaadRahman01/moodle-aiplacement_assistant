@@ -34,7 +34,8 @@ class not_submitted extends intent_base {
 
     #[\Override]
     public static function description(): string {
-        return 'Which students have not submitted an assignment yet (for teachers).';
+        return 'Which students have not submitted an assignment yet (for teachers), '
+            . 'e.g. "Who hasn\'t submitted Essay One?"';
     }
 
     #[\Override]

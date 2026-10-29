@@ -120,6 +120,41 @@ final class access_check_test extends \advanced_testcase {
         $this->assertSame(['problems' => 1], $answer->facts);
     }
 
+    /**
+     * A course in a visible subcategory of a hidden category is reported as a category problem.
+     */
+    public function test_hidden_parent_category(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $parent = $gen->create_category(['name' => 'Parent']);
+        $child = $gen->create_category(['name' => 'Child', 'parent' => $parent->id]);
+        // Hide only the parent row, leaving the subcategory flagged visible.
+        $DB->set_field('course_categories', 'visible', 0, ['id' => $parent->id]);
+        \cache_helper::purge_by_event('changesincoursecat');
+        $course = $gen->create_course(['shortname' => 'ANC1', 'category' => $child->id]);
+        $ali = $gen->create_user(['firstname' => 'Ali', 'lastname' => 'Raza']);
+        $gen->enrol_user($ali->id, $course->id, 'student');
+        $this->setAdminUser();
+        $answer = (new access_check())->handle(
+            ['user' => 'Ali Raza', 'course' => 'ANC1'],
+            $this->request(get_admin(), \context_system::instance())
+        );
+        $this->assertTrue($this->is_problem($answer, 'category_visible'));
+        $this->assertSame(['problems' => 1], $answer->facts);
+
+        // Someone allowed to see hidden categories in the parent has no problem.
+        $roleid = $gen->create_role();
+        $parentctx = \context_coursecat::instance($parent->id);
+        assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $parentctx);
+        $gen->role_assign($roleid, $ali->id, $parentctx);
+        $answer = (new access_check())->handle(
+            ['user' => 'Ali Raza', 'course' => 'ANC1'],
+            $this->request(get_admin(), \context_system::instance())
+        );
+        $this->assertFalse($this->is_problem($answer, 'category_visible'));
+    }
+
     public function test_suspended_user_and_not_enrolled(): void {
         $this->resetAfterTest();
         $gen = $this->getDataGenerator();

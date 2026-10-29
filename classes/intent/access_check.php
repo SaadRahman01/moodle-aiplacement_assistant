@@ -180,10 +180,21 @@ class access_check extends intent_base {
         $viewhidden = has_capability('moodle/course:viewhiddencourses', $coursectx, $user->id);
         $checks['course_visible'] = [!empty($course->visible) || $viewhidden, ''];
 
-        $category = $DB->get_record('course_categories', ['id' => $course->category], 'id, visible');
+        // Every ancestor category counts: a visible subcategory of a hidden category is still out of reach.
         $catok = true;
-        if ($category && !$category->visible) {
-            $catok = has_capability('moodle/category:viewhiddencategories', \context_coursecat::instance($category->id), $user->id);
+        $path = $DB->get_field('course_categories', 'path', ['id' => $course->category]);
+        $ids = $path ? array_filter(array_map('intval', explode('/', $path))) : [];
+        if ($ids) {
+            $categories = $DB->get_records_list('course_categories', 'id', $ids, '', 'id, visible');
+            foreach ($categories as $category) {
+                if (
+                    !$category->visible
+                    && !has_capability('moodle/category:viewhiddencategories', \context_coursecat::instance($category->id), $user->id)
+                ) {
+                    $catok = false;
+                    break;
+                }
+            }
         }
         $checks['category_visible'] = [$catok, ''];
 

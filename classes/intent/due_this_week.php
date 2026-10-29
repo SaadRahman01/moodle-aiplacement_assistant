@@ -63,7 +63,8 @@ class due_this_week extends intent_base {
             $now + $days * DAYSECS,
             null,
             50,
-            false,
+            // Skip courses where the user's enrolment is suspended, as the Timeline block does.
+            true,
             $user
         );
 

@@ -73,6 +73,28 @@ final class student_intents_test extends \advanced_testcase {
     }
 
     /**
+     * Deadlines from a course where the student's enrolment is suspended are not listed, as in the Timeline block.
+     */
+    public function test_due_excludes_suspended_enrolment(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $student = $gen->create_user();
+        $active = $gen->create_course();
+        $suspended = $gen->create_course();
+        $gen->enrol_user($student->id, $active->id, 'student');
+        $gen->enrol_user($student->id, $suspended->id, 'student', 'manual', 0, 0, ENROL_USER_SUSPENDED);
+        $assign = $gen->get_plugin_generator('mod_assign');
+        $assign->create_instance(['course' => $active->id, 'name' => 'Active one', 'duedate' => time() + DAYSECS]);
+        $assign->create_instance(['course' => $suspended->id, 'name' => 'Suspended one', 'duedate' => time() + DAYSECS]);
+        $this->setUser($student);
+
+        $answer = (new due_this_week())->handle([], $this->request($student));
+        $labels = implode("\n", array_column($answer->rows, 'label'));
+        $this->assertStringContainsString('Active one', $labels);
+        $this->assertStringNotContainsString('Suspended one', $labels);
+    }
+
+    /**
      * Nothing due gives the none fallback; guests are excluded.
      */
     public function test_due_none_and_availability(): void {

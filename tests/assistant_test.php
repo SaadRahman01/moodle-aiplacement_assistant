@@ -271,8 +271,10 @@ final class assistant_test extends \advanced_testcase {
      * An answer with no facts (not found, pick one) shows its fallback without an AI phrasing call.
      */
     public function test_no_facts_uses_fallback_without_phrasing(): void {
-        $fake = $this->setup_fakes(['{"intent":"my_grade","params":{"course":"Chemistry"}}', 'Invented grade text.'],
-            [my_grade::class]);
+        $fake = $this->setup_fakes(
+            ['{"intent":"my_grade","params":{"course":"Chemistry"}}', 'Invented grade text.'],
+            [my_grade::class]
+        );
         $out = (new assistant())->respond($this->req('What is my grade in Chemistry?'));
         $this->assertTrue($out['success']);
         $this->assertSame(get_string('notfound_course', 'aiplacement_assistant'), $out['text']);

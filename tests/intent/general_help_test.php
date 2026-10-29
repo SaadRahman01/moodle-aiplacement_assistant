@@ -109,7 +109,7 @@ final class general_help_test extends \advanced_testcase {
             'empty' => ['   '],
             'double quoted' => ['"NOT_SURE"'],
             'single quoted' => ["'NOT_SURE'"],
-            'backticks' => ['`NOT_SURE`'],
+            'backticks' => [chr(96) . 'NOT_SURE' . chr(96)],
             'bold' => ['**NOT_SURE**'],
         ];
     }

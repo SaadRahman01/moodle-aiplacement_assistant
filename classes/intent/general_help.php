@@ -63,7 +63,7 @@ class general_help extends intent_base {
         $generated = \core\di::get(ai_bridge::class)->generate($r->context, $r->userid, $prompt);
         $trimmed = $generated === null ? '' : trim($generated);
         // Models sometimes wrap the sentinel in quotes, backticks or bold markers.
-        $unwrapped = ltrim($trimmed, " \t\n\r\"'`*");
+        $unwrapped = ltrim($trimmed, " \t\n\r\"'*" . chr(96));
         if ($trimmed === '' || preg_match('/^NOT_SURE(?![\p{L}\p{N}_])/u', $unwrapped)) {
             $text = get_string('help_notsure', 'aiplacement_assistant');
         } else {

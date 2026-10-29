@@ -40,7 +40,10 @@ class my_grade extends intent_base {
     #[\Override]
     public static function params(): array {
         return [
-            'course' => ['type' => PARAM_TEXT, 'description' => 'Course name or short name; leave empty if the user means the current course'],
+            'course' => [
+                'type' => PARAM_TEXT,
+                'description' => 'Course name or short name; leave empty if the user means the current course',
+            ],
         ];
     }
 

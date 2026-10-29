@@ -189,7 +189,11 @@ class access_check extends intent_base {
             foreach ($categories as $category) {
                 if (
                     !$category->visible
-                    && !has_capability('moodle/category:viewhiddencategories', \context_coursecat::instance($category->id), $user->id)
+                    && !has_capability(
+                        'moodle/category:viewhiddencategories',
+                        \context_coursecat::instance($category->id),
+                        $user->id
+                    )
                 ) {
                     $catok = false;
                     break;

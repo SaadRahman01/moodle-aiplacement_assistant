@@ -74,7 +74,8 @@ class router {
         }
 
         $example = isset($intents['forum_summary'])
-            ? ' For example, "Summarise the Course Chat forum" gives {"intent": "forum_summary", "params": {"forum": "Course Chat"}}.'
+            ? ' For example, "Summarise the Course Chat forum" gives '
+                . '{"intent": "forum_summary", "params": {"forum": "Course Chat"}}.'
             : '';
 
         return self::FRAMING . "\n\n"

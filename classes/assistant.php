@@ -110,12 +110,17 @@ class assistant {
 
         $answer = $intents[$name]->handle($params, $r);
         $text = $answer->text;
+        if ($text === '' && $answer->facts === []) {
+            // Nothing to phrase (not found, pick one, feature off): show the fixed text rather than let the AI guess.
+            $text = $answer->fallback;
+        }
         if ($text === '') {
             $prompt = prompt::PREAMBLE . "\n\n"
                 . prompt::untrusted('facts', json_encode($answer->facts), 2000) . "\n\n"
                 . prompt::untrusted('question', $question, 2000) . "\n\n"
                 . "Write one or two friendly sentences in language {$lang}. "
-                . 'Do not invent names, dates or numbers not in the facts.';
+                . 'Do not invent names, dates or numbers not in the facts. '
+                . 'The exact results are shown to the user below your sentences; do not restate or contradict them.';
             $generated = $bridge->generate($r->context, $r->userid, $prompt);
             $text = ($generated === null || trim($generated) === '') ? $answer->fallback : trim($generated);
         }

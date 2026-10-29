@@ -20,6 +20,7 @@ use aiplacement_assistant\intent\registry;
 use aiplacement_assistant\intent\access_check;
 use aiplacement_assistant\intent\forum_summary;
 use aiplacement_assistant\intent\general_help;
+use aiplacement_assistant\intent\my_grade;
 
 /**
  * Tests for the assistant orchestrator.
@@ -263,6 +264,18 @@ final class assistant_test extends \advanced_testcase {
                 $this->assertStringNotContainsString($name, $m['text']);
             }
         }
+    }
+
+    /**
+     * An answer with no facts (not found, pick one) shows its fallback without an AI phrasing call.
+     */
+    public function test_no_facts_uses_fallback_without_phrasing(): void {
+        $fake = $this->setup_fakes(['{"intent":"my_grade","params":{"course":"Chemistry"}}', 'Invented grade text.'],
+            [my_grade::class]);
+        $out = (new assistant())->respond($this->req('What is my grade in Chemistry?'));
+        $this->assertTrue($out['success']);
+        $this->assertSame(get_string('notfound_course', 'aiplacement_assistant'), $out['text']);
+        $this->assertCount(1, $fake->prompts);
     }
 
     /**

@@ -38,7 +38,7 @@ class access_check extends intent_base {
     #[\Override]
     public static function description(): string {
         return 'Diagnose why another, named user cannot see or access a course (for administrators and enrolment managers), '
-            . 'e.g. "Why can\'t Ali see Biology 101?" or "Sue can\'t access this course"';
+            . 'e.g. "Why can\'t Ali see Biology 101?" or "Omar can\'t access this course"';
     }
 
     #[\Override]

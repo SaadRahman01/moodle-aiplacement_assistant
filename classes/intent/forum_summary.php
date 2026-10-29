@@ -95,7 +95,7 @@ class forum_summary extends intent_base {
         }
 
         $cm = reset($cms);
-        $name = $cm->get_formatted_name();
+        $name = $cm->get_formatted_name(['escape' => false]);
         $links = [['label' => $name, 'url' => (new \moodle_url('/mod/forum/view.php', ['id' => $cm->id]))->out(false)]];
         $user = \core_user::get_user($r->userid, '*', MUST_EXIST);
         $posts = $this->visible_posts($cm, $user);

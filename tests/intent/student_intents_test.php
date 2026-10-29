@@ -236,6 +236,19 @@ final class student_intents_test extends \advanced_testcase {
     }
 
     /**
+     * A course name with an ampersand is not escaped in the facts, the row or the fallback.
+     */
+    public function test_my_grade_ampersand_not_pre_escaped(): void {
+        $this->resetAfterTest();
+        [$student, $course] = $this->grade_setup();
+        update_course((object) ['id' => $course->id, 'fullname' => 'Science & Tech']);
+        $answer = (new my_grade())->handle(['course' => 'Science & Tech'], $this->request($student));
+        $this->assertSame(['course' => 'Science & Tech'], $answer->facts);
+        $this->assertSame('Science & Tech', $answer->rows[0]['label']);
+        $this->assertStringNotContainsString('&amp;', $answer->fallback);
+    }
+
+    /**
      * Only incomplete, visible, completion-tracked activities are listed.
      */
     public function test_unfinished_activities(): void {

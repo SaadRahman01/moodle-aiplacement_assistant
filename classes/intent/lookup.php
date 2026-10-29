@@ -21,6 +21,9 @@ use aiplacement_assistant\request;
 /**
  * Shared lookup helpers for intents.
  *
+ * Names are formatted with 'escape' => false: row labels are escaped by the Mustache template and answer text by
+ * FORMAT_PLAIN formatting, so escaping here would show "&amp;".
+ *
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -116,7 +119,11 @@ class lookup {
         $rows = [];
         foreach ($courses as $course) {
             $rows[] = [
-                'label' => format_string($course->fullname, true, ['context' => \context_course::instance($course->id)]),
+                'label' => format_string(
+                    $course->fullname,
+                    true,
+                    ['context' => \context_course::instance($course->id), 'escape' => false]
+                ),
                 'value' => '',
                 'url' => (new \moodle_url('/course/view.php', ['id' => $course->id]))->out(false),
             ];
@@ -156,7 +163,7 @@ class lookup {
             if (!$cm->uservisible) {
                 continue;
             }
-            $name = \core_text::strtolower($cm->get_formatted_name());
+            $name = \core_text::strtolower($cm->get_formatted_name(['escape' => false]));
             if ($needle !== '' && \core_text::strpos($name, $needle) === false) {
                 continue;
             }
@@ -176,7 +183,7 @@ class lookup {
         foreach ($cms as $cm) {
             $url = $cm->url;
             $rows[] = [
-                'label' => $cm->get_formatted_name(),
+                'label' => $cm->get_formatted_name(['escape' => false]),
                 'value' => '',
                 'url' => $url ? $url->out(false) : null,
             ];

@@ -70,10 +70,10 @@ class due_this_week extends intent_base {
 
         $rows = [];
         foreach ($events as $event) {
-            $label = format_string($event->get_name());
+            $label = format_string($event->get_name(), true, ['escape' => false]);
             $course = $event->get_course();
             if ($course && $course->get('shortname')) {
-                $label .= ' (' . format_string($course->get('shortname')) . ')';
+                $label .= ' (' . format_string($course->get('shortname'), true, ['escape' => false]) . ')';
             }
             $timesort = $event->get_times()->get_sort_time()->getTimestamp();
             $action = $event->get_action();

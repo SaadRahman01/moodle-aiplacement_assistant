@@ -69,7 +69,7 @@ class unfinished_activities extends intent_base {
         }
 
         $course = reset($courses);
-        $name = format_string($course->fullname, true, ['context' => \context_course::instance($course->id)]);
+        $name = format_string($course->fullname, true, ['context' => \context_course::instance($course->id), 'escape' => false]);
         $completion = new \completion_info(get_course($course->id));
         if (!$completion->is_enabled()) {
             return new answer(fallback: get_string('completion_off', 'aiplacement_assistant'));
@@ -87,7 +87,7 @@ class unfinished_activities extends intent_base {
             }
             $url = $cm->url;
             $rows[] = [
-                'label' => $cm->get_formatted_name(),
+                'label' => $cm->get_formatted_name(['escape' => false]),
                 'value' => '',
                 'url' => $url ? $url->out(false) : null,
             ];

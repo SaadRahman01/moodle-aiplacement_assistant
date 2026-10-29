@@ -601,4 +601,31 @@ final class teacher_intents_test extends \advanced_testcase {
         $this->assertSame([$forum->cmid], array_keys(lookup::activity_in_course($coursectx, 'forum', 'the Course Chat forum')));
         $this->assertCount(2, lookup::activity_in_course($coursectx, 'forum', 'this forum'));
     }
+
+    /**
+     * Names with an ampersand match the plain term and come back escaped zero times (the template escapes once).
+     */
+    public function test_ampersand_names_match_and_are_not_pre_escaped(): void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $course = $gen->create_course(['fullname' => 'Science & Tech']);
+        $teacher = $gen->create_and_enrol($course, 'editingteacher');
+        $forum = $gen->create_module('forum', ['course' => $course->id, 'name' => 'Q&A forum']);
+        $tips = $gen->create_module('forum', ['course' => $course->id, 'name' => 'Tips & tricks']);
+        $this->setUser($teacher);
+        $coursectx = \context_course::instance($course->id);
+
+        $this->assertSame([$forum->cmid], array_keys(lookup::activity_in_course($coursectx, 'forum', 'Q&A')));
+        // "q&a" happens to be a prefix of the escaped "q&amp;a"; this term is not.
+        $this->assertSame([$tips->cmid], array_keys(lookup::activity_in_course($coursectx, 'forum', 'tips & tricks')));
+        $rows = lookup::activity_candidate_rows(lookup::activity_in_course($coursectx, 'forum', ''));
+        $this->assertContains('Q&A forum', array_column($rows, 'label'));
+        $this->assertSame('Science & Tech', lookup::course_candidate_rows([$course])[0]['label']);
+
+        $this->fake([]);
+        $answer = (new forum_summary())->handle(['forum' => 'Q&A'], $this->request($teacher, $coursectx));
+        $this->assertSame(['posts' => 0, 'forum' => 'Q&A forum'], $answer->facts);
+        $this->assertSame('Q&A forum', $answer->links[0]['label']);
+        $this->assertStringNotContainsString('&amp;', $answer->fallback);
+    }
 }

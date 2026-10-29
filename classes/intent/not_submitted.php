@@ -82,7 +82,7 @@ class not_submitted extends intent_base {
         $cm = reset($cms);
         $cmctx = \context_module::instance($cm->id);
         $assign = new \assign($cmctx, $cm, $cm->get_course());
-        $name = $cm->get_formatted_name();
+        $name = $cm->get_formatted_name(['escape' => false]);
 
         $group = 0;
         if (

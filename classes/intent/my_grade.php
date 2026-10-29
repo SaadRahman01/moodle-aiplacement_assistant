@@ -75,7 +75,7 @@ class my_grade extends intent_base {
             return new answer(fallback: get_string('notfound_course', 'aiplacement_assistant'));
         }
 
-        $name = format_string($course->fullname, true, ['context' => $context]);
+        $name = format_string($course->fullname, true, ['context' => $context, 'escape' => false]);
         $grade = grade_get_course_grade($r->userid, $course->id);
         if (!$grade || !$course->showgrades) {
             $value = get_string('grade_hidden', 'aiplacement_assistant');

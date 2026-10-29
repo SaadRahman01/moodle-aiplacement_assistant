@@ -220,7 +220,7 @@ class access_check extends intent_base {
         $a = (object) [
             'problems' => $problems,
             'user' => fullname($user),
-            'course' => format_string($course->fullname, true, ['context' => $coursectx]),
+            'course' => format_string($course->fullname, true, ['context' => $coursectx, 'escape' => false]),
         ];
         return new answer(
             facts: ['problems' => $problems],

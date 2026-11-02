@@ -45,9 +45,9 @@ Answer quality depends on the model. Small local models (3 to 4 billion paramete
 | Price | Free |
 | Licence | GNU GPL v3 or later |
 | Supported versions | 4.5, 5.2 |
-| Source control URL | (public GitHub repository URL) |
-| Bug tracker URL | (GitHub repository URL)/issues |
-| Documentation URL | (GitHub repository URL)#readme |
+| Source control URL | https://github.com/SaadRahman01/moodle-aiplacement_assistant |
+| Bug tracker URL | https://github.com/SaadRahman01/moodle-aiplacement_assistant/issues |
+| Documentation URL | https://github.com/SaadRahman01/moodle-aiplacement_assistant#readme |
 | Demo credentials | Not needed: reviewers can use any AI provider supported by Moodle core |
 
 ## Screenshots
@@ -62,7 +62,7 @@ These were taken on a development site, with the performance footer showing; ret
 
 ## Before submitting
 
-1. Push to a public GitHub repository named `moodle-aiplacement_assistant` and turn on Issues.
+1. Done: public repository at https://github.com/SaadRahman01/moodle-aiplacement_assistant with Issues on.
 2. Check that the GitHub Actions CI run is green.
 3. Build the ZIP with `.github/scripts/build-zip.sh`.
 4. Sign in at marketplace.moodle.com with your Moodle.org email, choose "Submit a plugin", pick Free, upload the ZIP, then fill in the fields and screenshots above.

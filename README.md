@@ -1,4 +1,4 @@
-# Moodle Assistant (aiplacement_assistant)
+# Course Assistant (aiplacement_assistant)
 
 An AI placement plugin for Moodle that provides an in-Moodle chat assistant.
 It plugs into the Moodle AI subsystem, so all requests are routed through the

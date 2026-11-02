@@ -31,7 +31,7 @@ class behat_aiplacement_assistant extends behat_base {
      *
      * Moodle 4.5 configures providers as plugins; Moodle 5.0+ uses provider instances.
      *
-     * @Given /^a test AI provider is configured for the Moodle Assistant$/
+     * @Given /^a test AI provider is configured for the Course Assistant$/
      */
     public function a_test_ai_provider_is_configured_for_the_moodle_assistant(): void {
         $manager = \core\di::get(\core_ai\manager::class);

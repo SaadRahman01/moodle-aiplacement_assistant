@@ -35,7 +35,7 @@ $functions = [
     ],
     'aiplacement_assistant_send_message' => [
         'classname' => \aiplacement_assistant\external\send_message::class,
-        'description' => 'Send a message to the Moodle Assistant and get its reply.',
+        'description' => 'Send a message to the Course Assistant and get its reply.',
         'type' => 'read',
         'ajax' => true,
         'loginrequired' => true,

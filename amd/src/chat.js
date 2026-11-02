@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Floating button and side panel for the Moodle Assistant.
+ * Floating button and side panel for the Course Assistant.
  *
  * @module     aiplacement_assistant/chat
  * @copyright  2026 Saad Rahman

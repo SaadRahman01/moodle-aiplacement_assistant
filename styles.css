@@ -1,4 +1,4 @@
-/* Moodle Assistant floating button and side panel. Logical properties keep RTL working. */
+/* Course Assistant floating button and side panel. Logical properties keep RTL working. */
 .aiplacement_assistant-button {
     position: fixed;
     bottom: 5.5rem;

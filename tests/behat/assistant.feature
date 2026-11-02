@@ -1,5 +1,5 @@
 @aiplacement @aiplacement_assistant @javascript @accessibility
-Feature: Moodle Assistant chat panel
+Feature: Course Assistant chat panel
   In order to get help while using Moodle
   As a student
   I need to open the assistant from any page, except while taking an exam
@@ -14,12 +14,12 @@ Feature: Moodle Assistant chat panel
     And the following "course enrolments" exist:
       | user     | course | role    |
       | student1 | C1     | student |
-    And a test AI provider is configured for the Moodle Assistant
+    And a test AI provider is configured for the Course Assistant
 
   Scenario: A student opens the assistant, accepts the AI policy and sees the input box
     When I am on the "C1" "Course" page logged in as "student1"
-    Then "Open Moodle Assistant" "button" should exist
-    And I press "Open Moodle Assistant"
+    Then "Open Course Assistant" "button" should exist
+    And I press "Open Course Assistant"
     And I should see "AI usage policy"
     And "Your question" "field" should not be visible
     And I press "Accept and continue"
@@ -28,14 +28,14 @@ Feature: Moodle Assistant chat panel
     And the page should meet accessibility standards
     And I press "Send"
     And I should see "Please type a message."
-    And I press "Close Moodle Assistant"
+    And I press "Close Course Assistant"
     And "Your question" "field" should not be visible
 
   Scenario: The assistant works with the Classic theme
     Given the following config values are set as admin:
       | theme | classic |
     When I am on the "C1" "Course" page logged in as "student1"
-    And I press "Open Moodle Assistant"
+    And I press "Open Course Assistant"
     And I press "Accept and continue"
     Then "Your question" "field" should be visible
 
@@ -53,13 +53,13 @@ Feature: Moodle Assistant chat panel
       | question | page |
       | TF1      | 1    |
     When I am on the "Quiz 1" "mod_quiz > View" page logged in as "student1"
-    Then "Open Moodle Assistant" "button" should exist
+    Then "Open Course Assistant" "button" should exist
     And I press "Attempt quiz"
     And I should see "First question"
-    And "Open Moodle Assistant" "button" should not exist
+    And "Open Course Assistant" "button" should not exist
 
   Scenario: The assistant is not shown when the placement is disabled
     Given the following config values are set as admin:
       | enabled | 0 | aiplacement_assistant |
     When I am on the "C1" "Course" page logged in as "student1"
-    Then "Open Moodle Assistant" "button" should not exist
+    Then "Open Course Assistant" "button" should not exist

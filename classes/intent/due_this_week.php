@@ -52,6 +52,9 @@ class due_this_week extends intent_base {
 
     #[\Override]
     public function handle(array $params, request $r): answer {
+        global $CFG;
+        require_once($CFG->dirroot . '/calendar/lib.php');
+
         $days = (int) ($params['days'] ?? 7);
         if ($days < 1 || $days > 31) {
             $days = 7;

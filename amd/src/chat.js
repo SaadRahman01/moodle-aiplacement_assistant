@@ -234,15 +234,23 @@ class Chat {
             return;
         }
         this.started = true;
-        this.form.hidden = false;
-        this.input.focus();
-        const response = await Ajax.call([{
-            methodname: 'aiplacement_assistant_get_history',
-            args: {contextid: this.contextId},
-        }])[0];
-        for (const message of response.messages) {
-            // History text is already formatted (escaped) by the server.
-            await this.appendMessage({isuser: message.role === 'user', text: message.text});
+        try {
+            const response = await Ajax.call([{
+                methodname: 'aiplacement_assistant_get_history',
+                args: {contextid: this.contextId},
+            }])[0];
+            // History text is already formatted (escaped) by the server. Render in parallel, append in order.
+            const rendered = await Promise.all(response.messages.map((message) =>
+                Templates.renderForPromise('aiplacement_assistant/message', {isuser: message.role === 'user', text: message.text})
+            ));
+            for (const {html, js} of rendered) {
+                Templates.appendNodeContents(this.messages, html, js);
+            }
+            this.body.scrollTop = this.body.scrollHeight;
+        } finally {
+            // Show the form only once history is in place, so a new message is never rendered above it.
+            this.form.hidden = false;
+            this.input.focus();
         }
     }
 

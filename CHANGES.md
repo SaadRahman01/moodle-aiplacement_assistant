@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Fix "What is due soon" failing with a generic error in real requests (the calendar library was not loaded).
+- General help: remove data block markers echoed by the model, and treat NOT_SURE anywhere in the reply as not sure.
+- My grade: show the fixed text instead of an AI sentence, which claimed the grade was missing because the AI never sees it.
+- Phrasing prompt: the facts are complete and their numbers must be used exactly; echoed markers are removed.
+- Chat panel: load history before showing the input, so a quickly sent message is no longer shown above the history.
+
 ## 0.1.0 (2026-10-28)
 
 - First alpha release of the Moodle Assistant AI placement (Moodle 4.5 and 5.2).

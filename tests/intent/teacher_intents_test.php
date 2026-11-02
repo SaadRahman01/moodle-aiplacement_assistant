@@ -26,11 +26,12 @@ use aiplacement_assistant\request;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\intent\not_submitted
+ * @covers \aiplacement_assistant\intent\inactive_users
+ * @covers \aiplacement_assistant\intent\forum_summary
+ * @covers \aiplacement_assistant\intent\lookup
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(not_submitted::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(inactive_users::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(forum_summary::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(lookup::class)]
 final class teacher_intents_test extends \advanced_testcase {
     #[\Override]
     public static function setUpBeforeClass(): void {

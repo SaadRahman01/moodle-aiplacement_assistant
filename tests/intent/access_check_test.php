@@ -24,9 +24,10 @@ use aiplacement_assistant\request;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\intent\access_check
+ * @covers \aiplacement_assistant\intent\lookup
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(access_check::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(lookup::class)]
 final class access_check_test extends \advanced_testcase {
     /**
      * Build a request.

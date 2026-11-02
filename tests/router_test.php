@@ -24,8 +24,9 @@ use aiplacement_assistant\intent\general_help;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\router
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(router::class)]
 final class router_test extends \advanced_testcase {
     /**
      * Load fixtures.

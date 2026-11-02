@@ -22,8 +22,9 @@ namespace aiplacement_assistant;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\rate_limiter
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(rate_limiter::class)]
 final class rate_limiter_test extends \advanced_testcase {
     /**
      * The 31st request in an hour is blocked.

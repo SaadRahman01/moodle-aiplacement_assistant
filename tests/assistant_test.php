@@ -28,8 +28,9 @@ use aiplacement_assistant\intent\my_grade;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\assistant
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(assistant::class)]
 final class assistant_test extends \advanced_testcase {
     /**
      * Load fixtures.

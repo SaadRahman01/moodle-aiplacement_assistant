@@ -22,8 +22,9 @@ namespace aiplacement_assistant;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\placement
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(placement::class)]
 final class placement_test extends \advanced_testcase {
     /**
      * Only generate_text is supported.

@@ -24,8 +24,9 @@ use aiplacement_assistant\request;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\intent\registry
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(registry::class)]
 final class registry_test extends \advanced_testcase {
     /**
      * Build a request at system context.

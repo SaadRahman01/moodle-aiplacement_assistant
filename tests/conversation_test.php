@@ -22,8 +22,9 @@ namespace aiplacement_assistant;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\conversation
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(conversation::class)]
 final class conversation_test extends \advanced_testcase {
     /**
      * Recent returns the last six messages, oldest first.

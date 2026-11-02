@@ -22,8 +22,9 @@ namespace aiplacement_assistant;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @coversNothing
  */
-#[\PHPUnit\Framework\Attributes\CoversNothing]
 final class settings_test extends \advanced_testcase {
     /**
      * Rate limit and retention accept only whole numbers of zero or more.

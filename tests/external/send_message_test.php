@@ -26,9 +26,10 @@ use aiplacement_assistant\intent\registry;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\external\send_message
+ * @covers \aiplacement_assistant\external\get_history
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(send_message::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(get_history::class)]
 final class send_message_test extends \advanced_testcase {
     /**
      * Load fixtures.

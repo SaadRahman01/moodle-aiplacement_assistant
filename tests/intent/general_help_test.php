@@ -26,8 +26,9 @@ use aiplacement_assistant\request;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\intent\general_help
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(general_help::class)]
 final class general_help_test extends \advanced_testcase {
     /**
      * Load fixtures.

@@ -29,8 +29,9 @@ use core_privacy\local\request\writer;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\privacy\provider
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(provider::class)]
 final class provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Create two users with messages in one course context each.

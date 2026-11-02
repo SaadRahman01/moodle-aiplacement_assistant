@@ -22,8 +22,9 @@ namespace aiplacement_assistant;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\task\cleanup_history
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(task\cleanup_history::class)]
 final class cleanup_history_test extends \advanced_testcase {
     /**
      * Old rows are removed according to retention.

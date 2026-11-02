@@ -22,8 +22,9 @@ namespace aiplacement_assistant;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\prompt
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(prompt::class)]
 final class prompt_test extends \advanced_testcase {
     /**
      * Delimiters inside content are removed.

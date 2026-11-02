@@ -26,9 +26,10 @@ use core\hook\output\before_footer_html_generation;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\output\chat_ui
+ * @covers \aiplacement_assistant\hook_callbacks
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(chat_ui::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\aiplacement_assistant\hook_callbacks::class)]
 final class chat_ui_test extends \advanced_testcase {
     /** @var fake_ai_bridge The AI bridge test double. */
     private fake_ai_bridge $fake;

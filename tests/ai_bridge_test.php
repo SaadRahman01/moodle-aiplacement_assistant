@@ -24,8 +24,9 @@ use core_ai\aiactions\responses\response_generate_text;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\ai_bridge
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(ai_bridge::class)]
 final class ai_bridge_test extends \advanced_testcase {
     /**
      * Create and enable an OpenAI provider using the version-appropriate API.

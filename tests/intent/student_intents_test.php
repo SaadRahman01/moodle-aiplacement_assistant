@@ -24,11 +24,12 @@ use aiplacement_assistant\request;
  * @package    aiplacement_assistant
  * @copyright  2026 Saad Rahman
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \aiplacement_assistant\intent\due_this_week
+ * @covers \aiplacement_assistant\intent\my_grade
+ * @covers \aiplacement_assistant\intent\unfinished_activities
+ * @covers \aiplacement_assistant\intent\lookup
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(due_this_week::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(my_grade::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(unfinished_activities::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(lookup::class)]
 final class student_intents_test extends \advanced_testcase {
     /**
      * Build a request.

@@ -169,6 +169,16 @@ final class assistant_test extends \advanced_testcase {
     }
 
     /**
+     * Data block markers echoed in the phrasing reply are removed, and the prompt says the facts are complete.
+     */
+    public function test_phrasing_markers_removed(): void {
+        $fake = $this->setup_fakes(['{"intent":"general_help","params":{}}', "<<<DATA answer>>>\nTwo found.\n<<<END answer>>>"]);
+        $out = (new assistant())->respond($this->req());
+        $this->assertSame('Two found.', $out['text']);
+        $this->assertStringContainsString('correct and complete', $fake->prompts[1]);
+    }
+
+    /**
      * AI failure on routing stores nothing.
      */
     public function test_ai_failure_on_route_stores_nothing(): void {

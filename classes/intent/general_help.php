@@ -61,10 +61,9 @@ class general_help extends intent_base {
             . 'at most 120 words. If you are not confident, reply exactly NOT_SURE.';
 
         $generated = \core\di::get(ai_bridge::class)->generate($r->context, $r->userid, $prompt);
-        $trimmed = $generated === null ? '' : trim($generated);
-        // Models sometimes wrap the sentinel in quotes, backticks or bold markers.
-        $unwrapped = ltrim($trimmed, " \t\n\r\"'*" . chr(96));
-        if ($trimmed === '' || preg_match('/^NOT_SURE(?![\p{L}\p{N}_])/u', $unwrapped)) {
+        $trimmed = $generated === null ? '' : prompt::strip_markers($generated);
+        // Small models sometimes write an answer and then add the sentinel, so it counts anywhere in the reply.
+        if ($trimmed === '' || preg_match('/(?<![\p{L}\p{N}_])NOT_SURE(?![\p{L}\p{N}_])/u', $trimmed)) {
             $text = get_string('help_notsure', 'aiplacement_assistant');
         } else {
             $text = $trimmed;

@@ -111,7 +111,17 @@ final class general_help_test extends \advanced_testcase {
             'single quoted' => ["'NOT_SURE'"],
             'backticks' => [chr(96) . 'NOT_SURE' . chr(96)],
             'bold' => ['**NOT_SURE**'],
+            'after an answer' => ["<<<DATA answer>>>\nClick Add.\n<<<END answer>>>\n\nNOT_SURE"],
+            'inside a sentence' => ['Maybe click Add, but NOT_SURE.'],
         ];
+    }
+
+    /**
+     * Data block markers echoed by the model are removed from the answer.
+     */
+    public function test_answer_markers_removed(): void {
+        [$answer] = $this->run_intent(["<<<DATA answer>>>\nClick Add.\n<<<END answer>>>"]);
+        $this->assertSame('Click Add.', $answer->text);
     }
 
     /**

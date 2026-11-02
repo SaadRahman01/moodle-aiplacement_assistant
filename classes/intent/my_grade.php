@@ -90,8 +90,8 @@ class my_grade extends intent_base {
             $value = $grade->str_long_grade;
         }
 
+        // No facts: the grade is never sent to the AI, which then claims it is missing, so show the fixed text.
         return new answer(
-            facts: ['course' => $name],
             fallback: get_string('grade_found', 'aiplacement_assistant', $name),
             rows: [[
                 'label' => $name,

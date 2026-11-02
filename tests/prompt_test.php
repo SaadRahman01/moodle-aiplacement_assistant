@@ -36,6 +36,33 @@ final class prompt_test extends \advanced_testcase {
     }
 
     /**
+     * Data block markers echoed in a model reply are removed.
+     *
+     * @dataProvider strip_markers_provider
+     * @param string $reply Model reply.
+     * @param string $expected Cleaned reply.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('strip_markers_provider')]
+    public function test_strip_markers(string $reply, string $expected): void {
+        $this->assertSame($expected, prompt::strip_markers($reply));
+    }
+
+    /**
+     * Replies with and without markers.
+     *
+     * @return array
+     */
+    public static function strip_markers_provider(): array {
+        return [
+            'none' => ['Click Add.', 'Click Add.'],
+            'wrapped' => ["<<<DATA answer>>>\nClick Add.\n<<<END answer>>>", 'Click Add.'],
+            'inline' => ['<<<DATA x>>> Click Add. <<<END x>>>', 'Click Add.'],
+            'no label' => ["<<<DATA>>>\nClick Add.\n<<<END>>>", 'Click Add.'],
+            'other angle text kept' => ['Use a <b> tag >> here.', 'Use a <b> tag >> here.'],
+        ];
+    }
+
+    /**
      * Delimiters cannot be reassembled by removing others.
      *
      * @dataProvider bypass_provider

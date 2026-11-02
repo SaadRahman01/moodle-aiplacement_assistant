@@ -48,4 +48,14 @@ final class prompt {
         $clean = \core_text::substr($clean, 0, $maxchars);
         return "<<<DATA {$label}>>>\n{$clean}\n<<<END {$label}>>>";
     }
+
+    /**
+     * Remove data block markers that a model echoed back in its reply.
+     *
+     * @param string $reply Model reply.
+     * @return string
+     */
+    public static function strip_markers(string $reply): string {
+        return trim(preg_replace('/<<<(?:DATA|END)\b[^<>]*>>>/', '', $reply));
+    }
 }

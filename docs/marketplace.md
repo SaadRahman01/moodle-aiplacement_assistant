@@ -58,12 +58,12 @@ In `docs/screenshots/`:
 2. `02-grade.png`: a student asking for their grade.
 3. `03-forum-summary.png`: a forum summary.
 
-These were taken on a development site, with the performance footer showing; retake them with debugging display off and a larger model before submitting. Add a teacher screenshot (for example "Who has not submitted Essay One?") once the answer text is right with the model you use.
+No teacher screenshot yet: with qwen2.5:3b-instruct the sentence above the not-submitted list was wrong in three of three tries (the list itself was right). Add one once the answer text is right with the model you use.
 
 ## Before submitting
 
 1. Done: public repository at https://github.com/SaadRahman01/moodle-aiplacement_assistant with Issues on.
-2. Check that the GitHub Actions CI run is green.
+2. Done: GitHub Actions CI is green on both Moodle 4.5 and 5.2.
 3. Build the ZIP with `.github/scripts/build-zip.sh`.
 4. Sign in at marketplace.moodle.com with your Moodle.org email, choose "Submit a plugin", pick Free, upload the ZIP, then fill in the fields and screenshots above.
 5. Read the Marketplace "Plugin submission guidelines" (sign-in needed) for any rules not covered here.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 (2026-11-21)
+
+- Add the GNU GPL v3 licence text as LICENSE in the plugin root (requested in the Marketplace review).
+
 ## 0.2.0 (2026-11-02)
 
 - Renamed the display name to Course Assistant (the component stays aiplacement_assistant), to avoid use of the Moodle trademark.

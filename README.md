@@ -75,4 +75,4 @@ These results predate later fixes and have not been re-run: the router prompt wa
 
 ## License
 
-GNU GPL v3 or later.
+GNU GPL v3 or later. See [LICENSE](LICENSE).

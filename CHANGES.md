@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3 (2026-11-22)
+
+- Add a 24 px PNG fallback for the plugin icon (pix/icon.png).
+
 ## 0.2.2 (2026-11-22)
 
 - Add a plugin icon (pix/icon.svg).

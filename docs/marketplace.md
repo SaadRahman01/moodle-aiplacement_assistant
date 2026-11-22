@@ -52,7 +52,7 @@ Answer quality depends on the model. Small local models (3 to 4 billion paramete
 
 ## Logo
 
-`docs/icon/marketplace-icon.png` (512 x 512, made from `marketplace-icon.svg`). The plugin's own monochrome icon is `pix/icon.svg`.
+`docs/icon/marketplace-icon.png` (512 x 512, made from `marketplace-icon.svg`). The plugin's own monochrome icon is `pix/icon.svg`, with a 24 x 24 `pix/icon.png` fallback.
 
 ## Screenshots
 

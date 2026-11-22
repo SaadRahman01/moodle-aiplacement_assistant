@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 (2026-11-22)
+
+- Add a plugin icon (pix/icon.svg).
+
 ## 0.2.1 (2026-11-21)
 
 - Add the GNU GPL v3 licence text as LICENSE in the plugin root (requested in the Marketplace review).

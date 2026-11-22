@@ -50,6 +50,10 @@ Answer quality depends on the model. Small local models (3 to 4 billion paramete
 | Documentation URL | https://github.com/SaadRahman01/moodle-aiplacement_assistant#readme |
 | Demo credentials | Not needed: reviewers can use any AI provider supported by Moodle core |
 
+## Logo
+
+`docs/icon/marketplace-icon.png` (512 x 512, made from `marketplace-icon.svg`). The plugin's own monochrome icon is `pix/icon.svg`.
+
 ## Screenshots
 
 In `docs/screenshots/`:
